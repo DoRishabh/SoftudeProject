@@ -1,926 +1,649 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AdventureWorks AI Q&A</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --surface2: #1a1a26;
-      --border: #2a2a3e;
-      --accent1: #7c3aed;
-      --accent2: #06b6d4;
-      --accent3: #f59e0b;
-      --accent4: #10b981;
-      --accent5: #f43f5e;
-      --text: #f0f0ff;
-      --muted: #6b6b8a;
-      --glow1: rgba(124,58,237,0.3);
-      --glow2: rgba(6,182,212,0.3);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Animated background grid */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Floating orbs */
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      pointer-events: none;
-      z-index: 0;
-      animation: float 8s ease-in-out infinite;
-    }
-    .orb1 { width: 400px; height: 400px; background: var(--glow1); top: -100px; left: -100px; animation-delay: 0s; }
-    .orb2 { width: 300px; height: 300px; background: var(--glow2); bottom: -50px; right: -50px; animation-delay: -4s; }
-    .orb3 { width: 200px; height: 200px; background: rgba(245,158,11,0.15); top: 50%; left: 50%; animation-delay: -2s; }
-
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -30px) scale(1.05); }
-      66% { transform: translate(-20px, 20px) scale(0.95); }
-    }
-
-    .wrapper {
-      position: relative;
-      z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 40px 24px 80px;
-    }
-
-    /* Header */
-    header {
-      text-align: center;
-      margin-bottom: 48px;
-      animation: fadeDown 0.8s ease both;
-    }
-
-    .logo-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      padding: 6px 16px;
-      border-radius: 100px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-
-    .logo-badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      background: #fff;
-      border-radius: 50%;
-      animation: pulse 2s ease infinite;
-    }
-
-    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
-
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(32px, 5vw, 56px);
-      font-weight: 800;
-      line-height: 1.1;
-      background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent1) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 12px;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 16px;
-      font-weight: 300;
-      letter-spacing: 0.5px;
-    }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Stats bar */
-    .stats-bar {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-      animation: fadeUp 0.8s 0.2s ease both;
-    }
-
-    .stat-pill {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      padding: 8px 20px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.3s;
-    }
-
-    .stat-pill:hover { border-color: var(--accent1); transform: translateY(-2px); }
-    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-    /* Search box */
-    .search-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
-      margin-bottom: 32px;
-      animation: fadeUp 0.8s 0.3s ease both;
-      transition: border-color 0.3s;
-    }
-
-    .search-card:focus-within { border-color: var(--accent1); box-shadow: 0 0 40px var(--glow1); }
-
-    .search-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--accent2);
-      margin-bottom: 12px;
-      display: block;
-    }
-
-    .search-row {
-      display: flex;
-      gap: 12px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 20px;
-      font-size: 15px;
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      outline: none;
-      transition: all 0.3s;
-    }
-
-    input[type="text"]::placeholder { color: var(--muted); }
-    input[type="text"]:focus { border-color: var(--accent1); background: #15152a; }
-
-    .send-btn {
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      border: none;
-      border-radius: 12px;
-      padding: 14px 28px;
-      color: #fff;
-      font-family: 'Syne', sans-serif;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s;
-      white-space: nowrap;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .send-btn::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .send-btn:hover::after { opacity: 1; }
-    .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow1); }
-    .send-btn:active { transform: translateY(0); }
-    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    /* Quick queries */
-    .quick-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin: 16px 0 10px;
-      display: block;
-    }
-
-    .quick-queries {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .quick-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      padding: 7px 16px;
-      font-size: 12.5px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.25s;
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    .quick-btn:hover {
-      border-color: var(--accent2);
-      color: var(--accent2);
-      background: rgba(6,182,212,0.08);
-      transform: translateY(-1px);
-    }
-
-    /* Loading */
-    .loader {
-      display: none;
-      text-align: center;
-      padding: 48px;
-      animation: fadeUp 0.4s ease both;
-    }
-
-    .loader-inner {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .spinner-ring {
-      width: 48px; height: 48px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent1);
-      border-right-color: var(--accent2);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loader-text {
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      color: var(--muted);
-      animation: blink 1.5s ease infinite;
-    }
-
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-    /* Error */
-    .error-box {
-      display: none;
-      background: rgba(244,63,94,0.1);
-      border: 1px solid rgba(244,63,94,0.3);
-      border-radius: 12px;
-      padding: 16px 20px;
-      color: #fb7185;
-      font-size: 14px;
-      margin-bottom: 24px;
-      font-family: 'DM Mono', monospace;
-      line-height: 1.6;
-      animation: fadeUp 0.4s ease both;
-    }
-
-    /* Results section */
-    .results {
-      display: none;
-      animation: fadeUp 0.6s ease both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Chart type selector */
-    .chart-controls {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .result-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .result-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      background: rgba(16,185,129,0.15);
-      border: 1px solid rgba(16,185,129,0.3);
-      color: var(--accent4);
-      padding: 3px 10px;
-      border-radius: 100px;
-    }
-
-    .chart-type-btns {
-      display: flex;
-      gap: 6px;
-    }
-
-    .chart-type-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 7px 14px;
-      font-size: 12px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'DM Sans', sans-serif;
-    }
-
-    .chart-type-btn.active, .chart-type-btn:hover {
-      border-color: var(--accent1);
-      color: var(--text);
-      background: rgba(124,58,237,0.15);
-    }
-
-    /* Chart card */
-    .chart-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px;
-      margin-bottom: 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .chart-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3));
-    }
-
-    .chart-container { position: relative; height: 380px; }
-
-    /* Data table */
-    .table-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .table-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .row-count {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      padding: 3px 12px;
-      font-size: 11px;
-    }
-
-    .table-wrap { overflow-x: auto; max-height: 280px; overflow-y: auto; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-
-    thead th {
-      background: var(--surface2);
-      padding: 12px 20px;
-      text-align: left;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--accent2);
-      position: sticky;
-      top: 0;
-      white-space: nowrap;
-    }
-
-    tbody tr {
-      border-top: 1px solid var(--border);
-      transition: background 0.2s;
-    }
-
-    tbody tr:hover { background: var(--surface2); }
-
-    tbody td {
-      padding: 11px 20px;
-      color: var(--text);
-      white-space: nowrap;
-    }
-
-    tbody td:nth-child(2) { color: var(--accent3); font-family: 'DM Mono', monospace; font-weight: 500; }
-
-    /* SQL block */
-    .sql-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-
-    .sql-header {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .copy-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 5px 14px;
-      font-size: 11px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'DM Mono', monospace;
-    }
-
-    .copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-
-    .sql-body {
-      padding: 20px;
-      font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      line-height: 1.8;
-      color: #a5b4fc;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    /* Keyword highlighting */
-    .kw-select { color: var(--accent5); font-weight: 500; }
-    .kw-from { color: var(--accent3); font-weight: 500; }
-    .kw-join { color: var(--accent2); font-weight: 500; }
-    .kw-where { color: var(--accent4); font-weight: 500; }
-
-    /* History */
-    .history-section {
-      margin-top: 40px;
-      animation: fadeUp 0.8s 0.4s ease both;
-    }
-
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .history-list { display: flex; flex-direction: column; gap: 8px; }
-
-    .history-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 14px;
-    }
-
-    .history-item:hover {
-      border-color: var(--accent1);
-      background: rgba(124,58,237,0.08);
-      transform: translateX(4px);
-    }
-
-    .history-q { flex: 1; }
-    .history-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: 16px; }
-    .history-rows { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent4); margin-left: 12px; }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--surface); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent1); }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .search-row { flex-direction: column; }
-      .chart-controls { flex-direction: column; align-items: flex-start; }
-      .stats-bar { gap: 8px; }
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataPulse — AdventureWorks Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--sidebar:#13151c;--panel:#1a1d27;
+  --border:#2a2d3e;--border2:#353850;
+  --cyan:#00d4ff;--teal:#00b4a0;--orange:#ff7043;--lime:#76ff03;
+  --purple:#7c4dff;--pink:#ff4081;--yellow:#ffd740;--green:#00e676;
+  --text:#e2e4f0;--dim:#6b6e8a;--dimmer:#3a3d52;
+  --card:#1e2130;--card2:#252838;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);pointer-events:none;z-index:999;}
+
+/* TOP NAV */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:48px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;}
+.nav-left{display:flex;align-items:center;gap:16px;}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;}
+.logo span{color:var(--cyan);}
+.nav-tabs{display:flex;gap:2px;}
+.nav-tab{padding:6px 14px;font-size:12px;font-weight:500;color:var(--dim);cursor:pointer;border-radius:4px;transition:all 0.2s;border:none;background:none;font-family:'Inter',sans-serif;}
+.nav-tab:hover{color:var(--text);background:var(--panel);}
+.nav-tab.active{color:var(--cyan);background:rgba(0,212,255,0.1);}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.refresh-btn{background:var(--panel);border:1px solid var(--border2);color:var(--dim);padding:5px 12px;font-size:11px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.refresh-btn:hover{color:var(--text);border-color:var(--cyan);}
+
+/* FILTER BAR */
+.filterbar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.filter-label{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+.filter-select{background:var(--panel);border:1px solid var(--border2);color:var(--text);padding:5px 28px 5px 10px;font-size:12px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6e8a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:border-color 0.2s;min-width:130px;}
+.filter-select:focus{border-color:var(--cyan);}
+.filter-divider{width:1px;height:20px;background:var(--border);margin:0 2px;}
+.filter-status{font-size:11px;color:var(--dim);font-family:'Space Mono',monospace;margin-left:4px;}
+.ask-ai-btn{margin-left:auto;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;padding:6px 16px;font-size:12px;font-weight:600;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity 0.2s;}
+.ask-ai-btn:hover{opacity:0.85;}
+
+/* BODY */
+.body-wrap{display:flex;flex:1;overflow:hidden;position:relative;}
+
+/* LOADING OVERLAY */
+.loading-overlay{display:none;position:absolute;inset:0;background:rgba(15,17,23,0.88);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-overlay.show{display:flex;}
+.spin-ring{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--cyan);border-right-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);}
+.loading-steps{display:flex;flex-direction:column;gap:4px;}
+.lsp{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimmer);transition:color 0.3s;}
+.lsp.active{color:var(--cyan);}
+.lsp.done{color:var(--green);}
+
+/* LEFT SIDEBAR */
+.left-panel{width:272px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.lp-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;}
+.lp-body{flex:1;overflow-y:auto;padding:12px;}
+.query-area{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px;transition:border-color 0.3s;}
+.query-area:focus-within{border-color:var(--cyan);}
+.query-textarea{width:100%;background:transparent;border:none;padding:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;resize:none;height:76px;line-height:1.5;}
+.query-textarea::placeholder{color:var(--dimmer);}
+.query-footer{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-top:1px solid var(--border);}
+.run-btn{background:var(--cyan);color:#000;border:none;padding:6px 16px;font-size:11px;font-weight:700;letter-spacing:0.5px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.run-btn:hover{box-shadow:0 0 16px rgba(0,212,255,0.4);}
+.run-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.char-ct{font-size:10px;color:var(--dimmer);font-family:'Space Mono',monospace;}
+.section-head{font-size:10px;font-weight:600;color:var(--dimmer);text-transform:uppercase;letter-spacing:1.5px;margin:12px 0 7px;}
+.preset-list{display:flex;flex-direction:column;gap:3px;}
+.preset{padding:8px 10px;background:var(--card);border:1px solid var(--border);border-left:2px solid transparent;border-radius:0 4px 4px 0;font-size:12px;color:var(--dim);cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:7px;}
+.preset:hover{color:var(--text);transform:translateX(2px);}
+.cp:hover{border-left-color:var(--cyan);background:rgba(0,212,255,0.05);}
+.ct:hover{border-left-color:var(--lime);background:rgba(118,255,3,0.05);}
+.cc:hover{border-left-color:var(--orange);background:rgba(255,112,67,0.05);}
+.cm:hover{border-left-color:var(--purple);background:rgba(124,77,255,0.05);}
+.ptag{font-family:'Space Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;flex-shrink:0;}
+.tp{background:rgba(0,212,255,0.15);color:var(--cyan);}
+.tt{background:rgba(118,255,3,0.15);color:var(--lime);}
+.tc{background:rgba(255,112,67,0.15);color:var(--orange);}
+.tm{background:rgba(124,77,255,0.15);color:var(--purple);}
+.hist-item{padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--dim);cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.hist-item:hover{color:var(--text);border-color:var(--border2);}
+.hist-q{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-n{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);flex-shrink:0;}
+
+/* DASHBOARD */
+.dashboard{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:14px;}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;}
+.kpi-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.c1::before{background:linear-gradient(90deg,var(--cyan),var(--teal));}
+.kpi-card.c2::before{background:linear-gradient(90deg,var(--orange),var(--yellow));}
+.kpi-card.c3::before{background:linear-gradient(90deg,var(--purple),var(--pink));}
+.kpi-card.c4::before{background:linear-gradient(90deg,var(--lime),var(--green));}
+.kpi-label{font-size:10px;color:var(--dim);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.8px;}
+.kpi-val{font-size:26px;font-weight:700;line-height:1;margin-bottom:6px;}
+.kpi-sub{font-size:11px;color:var(--dim);}
+.kpi-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:12px;font-weight:600;margin-right:4px;}
+.kpi-up{background:rgba(0,230,118,0.15);color:var(--green);}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.chart-grid.wide{grid-template-columns:2fr 1fr;}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;transition:border-color 0.2s;}
+.chart-card:hover{border-color:var(--border2);}
+.cc-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--card2);flex-shrink:0;}
+.cc-title{font-size:12px;font-weight:600;}
+.cc-sub{font-size:10px;color:var(--dim);margin-top:1px;}
+.cc-actions{display:flex;gap:3px;}
+.cc-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:3px 8px;font-size:9px;font-family:'Space Mono',monospace;border-radius:3px;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
+.cc-btn:hover,.cc-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,0.08);}
+.cc-body{flex:1;padding:12px;position:relative;}
+.cc-canvas-wrap{position:relative;height:100%;min-height:200px;}
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.tc-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--card2);}
+.tc-title{font-size:12px;font-weight:600;}
+.tc-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);}
+.tc-body{overflow-x:auto;max-height:200px;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--panel);padding:8px 14px;text-align:left;font-size:9px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;position:sticky;top:0;white-space:nowrap;border-bottom:1px solid var(--border2);}
+tbody tr{border-top:1px solid rgba(42,45,62,0.7);transition:background 0.15s;}
+tbody tr:hover{background:rgba(0,212,255,0.03);}
+tbody td{padding:7px 14px;font-size:12px;white-space:nowrap;}
+tbody td.num{font-family:'Space Mono',monospace;color:var(--orange);font-size:11px;}
+tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimmer);}
+.bar-cell{display:flex;align-items:center;gap:8px;}
+.inline-bar{height:4px;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;transition:width 0.5s;}
+.sql-display{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.sql-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card2);}
+.sql-title{font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+.copy-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:3px 10px;font-size:9px;font-family:'Space Mono',monospace;border-radius:3px;cursor:pointer;transition:all 0.2s;}
+.copy-btn:hover{border-color:var(--lime);color:var(--lime);}
+.sql-body{padding:12px 14px;font-family:'Space Mono',monospace;font-size:11px;line-height:2;white-space:pre-wrap;word-break:break-all;max-height:110px;overflow-y:auto;}
+.error-card{background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-left:3px solid var(--pink);border-radius:0 8px 8px 0;padding:14px 16px;font-family:'Space Mono',monospace;font-size:11px;color:#ff80aa;line-height:1.8;white-space:pre-wrap;display:none;}
+.empty-dash{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;padding:60px;text-align:center;min-height:300px;}
+.empty-icon{font-size:48px;opacity:0.25;}
+.empty-title{font-size:18px;font-weight:700;color:var(--dimmer);}
+.empty-sub{font-size:11px;color:var(--dimmer);font-family:'Space Mono',monospace;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--cyan);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.35s ease both;}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}.chart-grid,.chart-grid.wide{grid-template-columns:1fr;}.left-panel{display:none;}}
+</style>
 </head>
 <body>
 
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
-
-<div class="wrapper">
-
-  <!-- Header -->
-  <header>
-    <div class="logo-badge">AdventureWorks AI</div>
-    <h1>Rishabh's<br/>Command Center</h1>
-    <p class="subtitle">Plain English → SQL → Instant Charts &nbsp;·&nbsp; Powered by Groq + Snowflake</p>
-  </header>
-
-  <!-- Stats bar -->
-  <div class="stats-bar">
-    <div class="stat-pill"><span class="stat-dot" style="background:#04b9f0"></span> 5 Tables</div>
-    <div class="stat-pill"><span class="stat-dot" style="background:#f5f107"></span> 55K+ Orders</div>
-    <div class="stat-pill"><span class="stat-dot" style="background:#fc0480"></span> 18K Customers</div>
-    <div class="stat-pill"><span class="stat-dot" style="background:#5a0303"></span> 397 Products</div>
-    <div class="stat-pill"><span class="stat-dot" style="background:#f43f5e; animation: pulse 2s infinite"></span> Live</div>
-  </div>
-
-  <!-- Search -->
-  <div class="search-card">
-    <span class="search-label">Ask a question</span>
-    <div class="search-row">
-      <input type="text" id="question" placeholder="e.g. Top 10 products by sales amount..." />
-      <button class="send-btn" id="send-btn" onclick="askQuestion()">Ask AI →</button>
-    </div>
-    <span class="quick-label">Try these →</span>
-    <div class="quick-queries">
-      <button class="quick-btn" onclick="setQ('Top 10 products by total sales amount')">🏆 Top products by sales</button>
-      <button class="quick-btn" onclick="setQ('Total sales amount by territory region')">🌍 Sales by territory</button>
-      <button class="quick-btn" onclick="setQ('Top 10 customers by total sales amount')">👥 Top customers</button>
-      <button class="quick-btn" onclick="setQ('Total sales by product category')">📦 Sales by category</button>
-      <button class="quick-btn" onclick="setQ('Top 10 products by order quantity')">📊 Most ordered products</button>
-      <button class="quick-btn" onclick="setQ('Sales amount by country')">🗺️ Sales by country</button>
-      <button class="quick-btn" onclick="setQ('Top 5 product models by revenue')">⭐ Top models by revenue</button>
-      <button class="quick-btn" onclick="setQ('Average unit price by product category')">💰 Avg price by category</button>
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="nav-left">
+    <div class="logo"><div class="logo-icon">D</div><div>Data<span>Pulse</span></div></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="navClick(this,'dashboard')">Dashboard</button>
+      <button class="nav-tab" onclick="navClick(this,'products')">Products</button>
+      <button class="nav-tab" onclick="navClick(this,'customers')">Customers</button>
+      <button class="nav-tab" onclick="navClick(this,'territories')">Territories</button>
     </div>
   </div>
+  <div class="nav-right">
+    <div class="live-badge"><div class="live-dot"></div>SNOWFLAKE LIVE</div>
+    <button class="refresh-btn" onclick="rerunCurrent()">⟳ Refresh</button>
+  </div>
+</div>
 
-  <!-- Loader -->
-  <div class="loader" id="loader">
-    <div class="loader-inner">
-      <div class="spinner-ring"></div>
-      <div class="loader-text" id="loader-text">Generating SQL...</div>
+<!-- FILTER BAR -->
+<div class="filterbar">
+  <span class="filter-label">View</span>
+  <select class="filter-select" id="f-category" onchange="filterChanged()">
+    <option value="">All Categories</option>
+    <option value="Bikes">Bikes</option>
+    <option value="Components">Components</option>
+    <option value="Clothing">Clothing</option>
+    <option value="Accessories">Accessories</option>
+  </select>
+  <select class="filter-select" id="f-territory" onchange="filterChanged()">
+    <option value="">All Territories</option>
+    <option value="Northwest">Northwest</option>
+    <option value="Northeast">Northeast</option>
+    <option value="Central">Central</option>
+    <option value="Southwest">Southwest</option>
+    <option value="Southeast">Southeast</option>
+    <option value="Canada">Canada</option>
+    <option value="France">France</option>
+    <option value="Germany">Germany</option>
+    <option value="Australia">Australia</option>
+    <option value="United Kingdom">United Kingdom</option>
+  </select>
+  <select class="filter-select" id="f-limit" onchange="limitChanged()">
+    <option value="5">Top 5</option>
+    <option value="10" selected>Top 10</option>
+    <option value="20">Top 20</option>
+    <option value="50">Top 50</option>
+  </select>
+  <div class="filter-divider"></div>
+  <span class="filter-status" id="filter-status">No query active</span>
+  <button class="ask-ai-btn" onclick="focusQ()">✦ Ask AI</button>
+</div>
+
+<!-- BODY -->
+<div class="body-wrap">
+
+  <!-- LOADING -->
+  <div class="loading-overlay" id="loader">
+    <div class="spin-ring"></div>
+    <div class="loading-text" id="load-msg">QUERYING...</div>
+    <div class="loading-steps">
+      <div class="lsp" id="ls1">▸ Parsing question</div>
+      <div class="lsp" id="ls2">▸ Generating SQL via Groq</div>
+      <div class="lsp" id="ls3">▸ Querying Snowflake</div>
+      <div class="lsp" id="ls4">▸ Building dashboard</div>
     </div>
   </div>
 
-  <!-- Error -->
-  <div class="error-box" id="error-box"></div>
-
-  <!-- Results -->
-  <div class="results" id="results">
-
-    <div class="chart-controls">
-      <div class="result-title">
-        <span id="result-question-label">Results</span>
-        <span class="result-badge" id="result-badge">0 rows</span>
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="lp-header">AI Query Engine</div>
+    <div class="lp-body">
+      <div class="query-area">
+        <textarea class="query-textarea" id="question" placeholder="Ask a business question...&#10;&#10;e.g. Top 10 products by sales" oninput="updateCt()"></textarea>
+        <div class="query-footer">
+          <span class="char-ct" id="char-ct">0c</span>
+          <button class="run-btn" id="run-btn" onclick="runQuery()">▶ RUN</button>
+        </div>
       </div>
-      <div class="chart-type-btns">
-        <button class="chart-type-btn active" onclick="switchChart('bar', this)">Bar</button>
-        <button class="chart-type-btn" onclick="switchChart('line', this)">Line</button>
-        <button class="chart-type-btn" onclick="switchChart('doughnut', this)">Donut</button>
-        <button class="chart-type-btn" onclick="switchChart('polarArea', this)">Polar</button>
+
+      <div class="section-head">Quick Queries — Products</div>
+      <div class="preset-list">
+        <div class="preset cp" onclick="setQ('Top 10 products by total sales amount')"><span class="ptag tp">PROD</span>Top 10 by sales</div>
+        <div class="preset cp" onclick="setQ('Top 10 products by order quantity')"><span class="ptag tp">PROD</span>Most ordered products</div>
+        <div class="preset cp" onclick="setQ('Total sales by product category')"><span class="ptag tp">PROD</span>Sales by category</div>
+        <div class="preset cp" onclick="setQ('Top 5 product models by total revenue')"><span class="ptag tp">PROD</span>Top models by revenue</div>
+        <div class="preset cp" onclick="setQ('Average unit price by product category')"><span class="ptag tp">PROD</span>Avg price by category</div>
       </div>
+
+      <div class="section-head">Quick Queries — Territory</div>
+      <div class="preset-list">
+        <div class="preset ct" onclick="setQ('Total sales amount by territory region')"><span class="ptag tt">TERR</span>Sales by territory</div>
+        <div class="preset ct" onclick="setQ('Sales amount by country')"><span class="ptag tt">TERR</span>Sales by country</div>
+        <div class="preset ct" onclick="setQ('Order quantity by territory region')"><span class="ptag tt">TERR</span>Orders by territory</div>
+      </div>
+
+      <div class="section-head">Quick Queries — Customers</div>
+      <div class="preset-list">
+        <div class="preset cc" onclick="setQ('Top 10 customers by total sales amount')"><span class="ptag tc">CUST</span>Top customers by sales</div>
+        <div class="preset cc" onclick="setQ('Top 10 customers by total sales amount')"><span class="ptag tc">CUST</span>Customers by orders</div>
+        <div class="preset cc" onclick="setQ('Sales by customer country region')"><span class="ptag tc">CUST</span>Sales by region</div>
+      </div>
+
+      <div class="section-head">Quick Queries — Misc</div>
+      <div class="preset-list">
+        <div class="preset cm" onclick="setQ('Top 10 resellers by total sales amount')"><span class="ptag tm">MISC</span>Top resellers</div>
+        <div class="preset cm" onclick="setQ('Total sales amount vs total product cost by category')"><span class="ptag tm">MISC</span>Revenue vs cost</div>
+      </div>
+
+      <div id="hist-head" style="display:none" class="section-head">Recent Queries</div>
+      <div id="hist-list"></div>
     </div>
-
-    <!-- Chart -->
-    <div class="chart-card">
-      <div class="chart-container">
-        <canvas id="myChart"></canvas>
-      </div>
-    </div>
-
-    <!-- Data Table -->
-    <div class="table-card">
-      <div class="table-header">
-        <span>Raw Data</span>
-        <span class="row-count" id="row-count-badge">0 rows</span>
-      </div>
-      <div class="table-wrap">
-        <table id="data-table">
-          <thead id="table-head"></thead>
-          <tbody id="table-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SQL -->
-    <div class="sql-card">
-      <div class="sql-header">
-        <span>Generated SQL</span>
-        <button class="copy-btn" onclick="copySQL()">Copy</button>
-      </div>
-      <div class="sql-body" id="sql-display"></div>
-    </div>
-
   </div>
 
-  <!-- History -->
-  <div class="history-section" id="history-section" style="display:none">
-    <div class="section-label">Query History</div>
-    <div class="history-list" id="history-list"></div>
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+    <div class="empty-dash" id="empty-state">
+      <div class="empty-icon">📊</div>
+      <div class="empty-title">No Query Active</div>
+      <div class="empty-sub">PICK A PRESET OR TYPE A QUESTION TO BUILD YOUR DASHBOARD</div>
+    </div>
   </div>
 
 </div>
 
 <script>
-  let chartInstance = null;
-  let currentData = null;
-  let queryHistory = [];
+// ── PALETTE ──────────────────────────────────────────────
+const PAL=['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
 
-  const COLORS = [
-    '#7c3aed','#06b6d4','#f59e0b','#10b981','#f43f5e',
-    '#8b5cf6','#0ea5e9','#fbbf24','#34d399','#fb7185',
-    '#a78bfa','#38bdf8','#fcd34d','#6ee7b7','#fda4af'
-  ];
+// ── NAV TAB QUERIES ───────────────────────────────────────
+const NAV_QUERIES = {
+  dashboard: null,
+  products:  'Top 10 products by total sales amount',
+  customers: 'Top 10 customers by total sales amount',
+  territories:'Total sales amount by territory region'
+};
 
-  const loaderMessages = [
-    'Parsing your question...', 'Reading schema...', 'Generating SQL...', 'Querying Snowflake...', 'Building your chart...'
-  ];
+function navClick(btn, tab) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const q = NAV_QUERIES[tab];
+  if (q) { setQ(q); runQuery(); }
+}
 
-  function setQ(q) {
-    document.getElementById('question').value = q;
-    document.getElementById('question').focus();
+// ── FILTER LOGIC ──────────────────────────────────────────
+function filterChanged() {
+  const cat  = document.getElementById('f-category').value;
+  const terr = document.getElementById('f-territory').value;
+  const q    = document.getElementById('question').value.trim();
+  if (!q) return;
+
+  // Build filter context to append to question
+  let extras = [];
+  if (cat)  extras.push(`for category ${cat}`);
+  if (terr) extras.push(`in territory ${terr}`);
+
+  // Strip previous filter suffixes and re-append
+  let baseQ = q.replace(/ for category [A-Za-z]+/gi,'').replace(/ in territory [A-Za-z ]+/gi,'').trim();
+  const newQ = extras.length ? baseQ + ' ' + extras.join(' ') : baseQ;
+  document.getElementById('question').value = newQ;
+  updateCt();
+  runQuery();
+}
+
+function limitChanged() {
+  // Just re-render with new limit if we have data — no re-query needed
+  if (curData) {
+    rebuildWithLimit();
+    const lim = document.getElementById('f-limit').value;
+    document.getElementById('filter-status').textContent = `Top ${lim} of ${curData.data.length} rows`;
   }
+}
 
-  function animateLoader() {
-    let i = 0;
-    const el = document.getElementById('loader-text');
-    return setInterval(() => {
-      el.textContent = loaderMessages[i % loaderMessages.length];
-      i++;
-    }, 900);
+function rebuildWithLimit() {
+  if (!curData) return;
+  const q = document.getElementById('question').value.trim() || 'Results';
+  buildDashboard(curData, q, false); // false = don't re-render SQL
+}
+
+// ── STATE ────────────────────────────────────────────────
+let chartInsts = {};
+let curData    = null;
+let history    = [];
+
+function setQ(q)  { document.getElementById('question').value = q; updateCt(); }
+function focusQ() { document.getElementById('question').focus(); }
+function updateCt(){ document.getElementById('char-ct').textContent = document.getElementById('question').value.length + 'c'; }
+
+function fmtN(n) {
+  if (typeof n !== 'number') n = parseFloat(n) || 0;
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+// ── LOADER ───────────────────────────────────────────────
+let loaderInt = null;
+function showLoader() {
+  document.getElementById('loader').classList.add('show');
+  ['ls1','ls2','ls3','ls4'].forEach(s => document.getElementById(s).className = 'lsp');
+  let i = 0;
+  const msgs = ['PARSING...','GENERATING SQL...','QUERYING SNOWFLAKE...','BUILDING DASHBOARD...'];
+  document.getElementById('load-msg').textContent = msgs[0];
+  document.getElementById('ls1').classList.add('active');
+  loaderInt = setInterval(() => {
+    if (i < 4) document.getElementById('ls'+(i+1)).classList.replace('active','done');
+    i++;
+    if (i < 4) { document.getElementById('load-msg').textContent = msgs[i]; document.getElementById('ls'+(i+1)).classList.add('active'); }
+  }, 750);
+}
+function hideLoader() { clearInterval(loaderInt); document.getElementById('loader').classList.remove('show'); }
+
+// ── QUERY ────────────────────────────────────────────────
+async function runQuery() {
+  const q = document.getElementById('question').value.trim();
+  if (!q) return;
+  document.getElementById('run-btn').disabled = true;
+  showLoader();
+  try {
+    const res  = await fetch("https://softudeproject.onrender.com/query", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
+    const json = await res.json();
+    hideLoader();
+    if (json.error) { showError(json.error, json.sql); return; }
+    if (!json.data || !json.data.length) { showError('Query returned 0 rows. Try rephrasing.'); return; }
+    curData = json;
+    buildDashboard(json, q, true);
+    addHist(q, json.data.length);
+  } catch(e) {
+    hideLoader();
+    showError('Cannot reach API.\n\nMake sure uvicorn is running:\n  uvicorn api:app --reload');
+  } finally {
+    document.getElementById('run-btn').disabled = false;
   }
+}
 
-  async function askQuestion() {
-    const question = document.getElementById('question').value.trim();
-    if (!question) return;
+function rerunCurrent() { runQuery(); }
 
-    document.getElementById('send-btn').disabled = true;
-    document.getElementById('loader').style.display = 'block';
-    document.getElementById('error-box').style.display = 'none';
-    document.getElementById('results').style.display = 'none';
-    const loaderInterval = animateLoader();
+// ── ERROR ────────────────────────────────────────────────
+function showError(msg, sql) {
+  document.getElementById('dashboard').innerHTML =
+    `<div class="error-card" style="display:block">⚠ ERROR\n\n${msg}${sql?'\n\nSQL:\n'+sql:''}</div>
+     <div class="empty-dash"><div class="empty-icon">💡</div><div class="empty-title">Try a different question</div><div class="empty-sub">USE THE PRESETS ON THE LEFT TO GET STARTED</div></div>`;
+}
 
-    try {
-      const res = await fetch("https://softudeproject.onrender.com/query", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
-      });
-      const json = await res.json();
+// ── BUILD DASHBOARD ──────────────────────────────────────
+function buildDashboard(json, question, renderSQL) {
+  const {columns, data, sql} = json;
+  const lim    = parseInt(document.getElementById('f-limit').value) || 10;
+  const sliced = data.slice(0, lim);
+  const labels = sliced.map(r => { const v = String(r[columns[0]]); return v.length > 20 ? v.substring(0,18)+'…' : v; });
+  const values = sliced.map(r => parseFloat(r[columns[1]]) || 0);
+  const total  = values.reduce((a,b) => a+b, 0);
+  const avg    = values.length ? total / values.length : 0;
+  const maxV   = values.length ? Math.max(...values) : 0;
 
-      if (json.error) {
-        showError('⚠ ' + json.error + (json.sql ? '\n\nGenerated SQL:\n' + json.sql : ''));
-        return;
-      }
+  Object.values(chartInsts).forEach(c => { try { c.destroy(); } catch(e) {} });
+  chartInsts = {};
 
-      if (!json.data || json.data.length === 0) {
-        showError('No results returned. Try a different question.');
-        return;
-      }
-
-      currentData = json;
-      renderResults(json, question);
-      addToHistory(question, json.data.length);
-
-    } catch (err) {
-      showError('Cannot reach the API. Make sure uvicorn is running:\n\nuvicorn api:app --reload');
-    } finally {
-      clearInterval(loaderInterval);
-      document.getElementById('send-btn').disabled = false;
-      document.getElementById('loader').style.display = 'none';
-    }
-  }
-
-  function renderResults(json, question) {
-    const { columns, data, sql } = json;
-
-    // Update labels
-    document.getElementById('result-question-label').textContent = question;
-    document.getElementById('result-badge').textContent = data.length + ' rows';
-    document.getElementById('row-count-badge').textContent = data.length + ' rows';
-
-    // Render chart (default bar)
-    renderChart('bar', columns, data);
-
-    // Render table
-    renderTable(columns, data);
-
-    // Render SQL
-    document.getElementById('sql-display').innerHTML = highlightSQL(sql);
-
-    // Show results
-    document.getElementById('results').style.display = 'block';
-
-    // Reset chart type buttons
-    document.querySelectorAll('.chart-type-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
-  }
-
-  function renderChart(type, columns, data) {
-    if (chartInstance) chartInstance.destroy();
-
-    const labels = data.map(r => String(r[columns[0]]));
-    const values = data.map(r => parseFloat(r[columns[1]]) || 0);
-    const ctx = document.getElementById('myChart').getContext('2d');
-
-    const isPie = type === 'doughnut' || type === 'polarArea';
-
-    chartInstance = new Chart(ctx, {
-      type: type,
-      data: {
-        labels,
-        datasets: [{
-          label: columns[1] || 'Value',
-          data: values,
-          backgroundColor: isPie ? COLORS.slice(0, data.length) : COLORS.map(c => c + 'cc'),
-          borderColor: isPie ? COLORS.slice(0, data.length) : COLORS,
-          borderWidth: isPie ? 2 : 1.5,
-          borderRadius: type === 'bar' ? 6 : 0,
-          hoverOffset: isPie ? 10 : 0,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 700, easing: 'easeOutQuart' },
-        plugins: {
-          legend: {
-            display: isPie,
-            labels: {
-              color: '#a0a0c0',
-              font: { family: 'DM Sans', size: 12 },
-              padding: 20,
-              usePointStyle: true,
-            }
-          },
-          tooltip: {
-            backgroundColor: '#1a1a26',
-            borderColor: '#2a2a3e',
-            borderWidth: 1,
-            titleColor: '#f0f0ff',
-            bodyColor: '#a0a0c0',
-            padding: 12,
-            cornerRadius: 10,
-            callbacks: {
-              label: ctx => ' ' + ctx.parsed.y?.toLocaleString() || ctx.parsed.toLocaleString()
-            }
-          }
-        },
-        scales: isPie ? {} : {
-          x: {
-            ticks: { color: '#6b6b8a', font: { family: 'DM Sans', size: 11 }, maxRotation: 30 },
-            grid: { color: 'rgba(255,255,255,0.04)' },
-            border: { color: '#2a2a3e' }
-          },
-          y: {
-            ticks: {
-              color: '#6b6b8a',
-              font: { family: 'DM Mono', size: 11 },
-              callback: v => v >= 1000 ? (v/1000).toFixed(1)+'K' : v
-            },
-            grid: { color: 'rgba(255,255,255,0.06)' },
-            border: { color: '#2a2a3e', dash: [4, 4] }
-          }
-        }
-      }
-    });
-  }
-
-  function switchChart(type, btn) {
-    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    if (currentData) renderChart(type, currentData.columns, currentData.data);
-  }
-
-  function renderTable(columns, data) {
-    const head = document.getElementById('table-head');
-    const body = document.getElementById('table-body');
-    head.innerHTML = '<tr>' + columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
-    body.innerHTML = data.map(row =>
-      '<tr>' + columns.map(c => `<td>${row[c] ?? ''}</td>`).join('') + '</tr>'
-    ).join('');
-  }
-
-  function highlightSQL(sql) {
-    return sql
-      .replace(/\b(SELECT|FROM|JOIN|ON|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|AS|INNER|LEFT|RIGHT|AND|OR|DESC|ASC|SUM|COUNT|AVG|MAX|MIN|DISTINCT)\b/gi,
-        m => `<span style="color:${
-          /SELECT|DISTINCT/.test(m.toUpperCase()) ? '#f43f5e' :
-          /FROM/.test(m.toUpperCase()) ? '#f59e0b' :
-          /JOIN|ON/.test(m.toUpperCase()) ? '#06b6d4' :
-          /WHERE|AND|OR/.test(m.toUpperCase()) ? '#10b981' :
-          /SUM|COUNT|AVG|MAX|MIN/.test(m.toUpperCase()) ? '#a78bfa' :
-          '#7c3aed'
-        };font-weight:500">${m}</span>`
-      );
-  }
-
-  function copySQL() {
-    const sql = document.getElementById('sql-display').innerText;
-    navigator.clipboard.writeText(sql).then(() => {
-      const btn = document.querySelector('.copy-btn');
-      btn.textContent = 'Copied!';
-      btn.style.color = 'var(--accent4)';
-      btn.style.borderColor = 'var(--accent4)';
-      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
-    });
-  }
-
-  function showError(msg) {
-    const box = document.getElementById('error-box');
-    box.textContent = msg;
-    box.style.display = 'block';
-  }
-
-  function addToHistory(question, rows) {
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    queryHistory.unshift({ question, rows, time });
-    if (queryHistory.length > 6) queryHistory.pop();
-    renderHistory();
-  }
-
-  function renderHistory() {
-    const section = document.getElementById('history-section');
-    const list = document.getElementById('history-list');
-    section.style.display = 'block';
-    list.innerHTML = queryHistory.map(h => `
-      <div class="history-item" onclick="setQ('${h.question.replace(/'/g,"\\'")}')">
-        <span class="history-q">${h.question}</span>
-        <span class="history-rows">${h.rows} rows</span>
-        <span class="history-time">${h.time}</span>
+  const dash = document.getElementById('dashboard');
+  dash.innerHTML = `
+    <div class="kpi-row fade-up">
+      <div class="kpi-card c1">
+        <div class="kpi-label">Total ${columns[1]||'Value'}</div>
+        <div class="kpi-val" style="color:var(--cyan)">${fmtN(total)}</div>
+        <div class="kpi-sub"><span class="kpi-badge kpi-up">↑ Live</span>from Snowflake</div>
       </div>
-    `).join('');
-  }
+      <div class="kpi-card c2">
+        <div class="kpi-label">Average</div>
+        <div class="kpi-val" style="color:var(--orange)">${fmtN(avg)}</div>
+        <div class="kpi-sub">per ${columns[0]||'item'}</div>
+      </div>
+      <div class="kpi-card c3">
+        <div class="kpi-label">Peak Value</div>
+        <div class="kpi-val" style="color:var(--purple)">${fmtN(maxV)}</div>
+        <div class="kpi-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${labels[0]||'—'}</div>
+      </div>
+      <div class="kpi-card c4">
+        <div class="kpi-label">Records</div>
+        <div class="kpi-val" style="color:var(--lime)">${sliced.length}</div>
+        <div class="kpi-sub">of ${data.length} total rows</div>
+      </div>
+    </div>
 
-  document.getElementById('question').addEventListener('keydown', e => {
-    if (e.key === 'Enter') askQuestion();
+    <div class="chart-grid wide fade-up" style="animation-delay:0.05s">
+      <div class="chart-card">
+        <div class="cc-header">
+          <div><div class="cc-title">${question}</div><div class="cc-sub">${columns[0]} vs ${columns[1]}</div></div>
+          <div class="cc-actions">
+            <button class="cc-btn active" onclick="swMain('bar',this)">BAR</button>
+            <button class="cc-btn" onclick="swMain('line',this)">LINE</button>
+            <button class="cc-btn" onclick="swMain('doughnut',this)">DONUT</button>
+          </div>
+        </div>
+        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:240px"><canvas id="ch-main"></canvas></div></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-header">
+          <div><div class="cc-title">Distribution</div><div class="cc-sub">Share breakdown</div></div>
+          <div class="cc-actions">
+            <button class="cc-btn active" onclick="swDist('polarArea',this)">POLAR</button>
+            <button class="cc-btn" onclick="swDist('doughnut',this)">DONUT</button>
+          </div>
+        </div>
+        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:240px"><canvas id="ch-dist"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="chart-grid fade-up" style="animation-delay:0.1s">
+      <div class="chart-card">
+        <div class="cc-header"><div><div class="cc-title">Horizontal Ranking</div><div class="cc-sub">Sorted view</div></div></div>
+        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:200px"><canvas id="ch-hbar"></canvas></div></div>
+      </div>
+      <div class="chart-card">
+        <div class="cc-header"><div><div class="cc-title">Radar Analysis</div><div class="cc-sub">Multi-axis view</div></div></div>
+        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:200px"><canvas id="ch-radar"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="chart-grid fade-up" style="animation-delay:0.15s">
+      <div class="table-card">
+        <div class="tc-header"><span class="tc-title">Data Table</span><span class="tc-meta">${sliced.length} rows · ${columns.length} cols</span></div>
+        <div class="tc-body" id="tbl-wrap"></div>
+      </div>
+      <div class="sql-display">
+        <div class="sql-hdr"><span class="sql-title">Generated SQL</span><button class="copy-btn" onclick="copySQL()">COPY</button></div>
+        <div class="sql-body" id="sql-code"></div>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    rMain('bar', labels, values, columns);
+    rDist('polarArea', labels, values);
+    rHBar(labels, values, columns);
+    rRadar(labels, values, columns);
+    rTable(columns, sliced, values);
+    if (renderSQL) rSQL(sql);
+    document.getElementById('filter-status').textContent = `Showing top ${sliced.length} of ${data.length} rows`;
+  }, 60);
+}
+
+// ── CHART HELPERS ─────────────────────────────────────────
+const GC = 'rgba(42,45,62,0.8)';
+const TC = '#4a4d6a';
+const TT = { backgroundColor:'#1e2130', borderColor:'#2a2d3e', borderWidth:1, titleColor:'#e2e4f0', bodyColor:'#8a8da0', padding:10, cornerRadius:6,
+  callbacks: { label: ctx => ' ' + (ctx.parsed.y !== undefined ? fmtN(ctx.parsed.y) : fmtN(ctx.parsed)) }
+};
+
+function rMain(type, labels, values, columns) {
+  const ctx = document.getElementById('ch-main'); if (!ctx) return;
+  const isPie = type === 'doughnut';
+  chartInsts.main = new Chart(ctx, {
+    type, data: { labels, datasets: [{ label: columns[1]||'Value', data: values,
+      backgroundColor: isPie ? PAL.map(c=>c+'99') : PAL.slice(0,values.length).map(c=>c+'bb'),
+      borderColor: PAL.slice(0, values.length), borderWidth:1.5,
+      borderRadius: type==='bar'?4:0, tension:0.4,
+      fill: type==='line' ? {target:'origin',above:'rgba(0,212,255,0.07)'} : false
+    }]},
+    options: { responsive:true, maintainAspectRatio:false, animation:{duration:500},
+      plugins: { legend:{display:isPie,labels:{color:'#8a8da0',font:{size:10},padding:12,usePointStyle:true}}, tooltip:TT },
+      scales: isPie ? {} : {
+        x:{ticks:{color:TC,font:{size:10},maxRotation:30},grid:{color:GC},border:{color:'#2a2d3e'}},
+        y:{ticks:{color:TC,font:{family:'Space Mono',size:10},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
+      }
+    }
   });
+}
+
+function swMain(type, btn) {
+  btn.closest('.cc-actions').querySelectorAll('.cc-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (chartInsts.main) chartInsts.main.destroy();
+  if (curData) {
+    const lim = parseInt(document.getElementById('f-limit').value) || 10;
+    const s   = curData.data.slice(0, lim);
+    rMain(type, s.map(r=>String(r[curData.columns[0]])), s.map(r=>parseFloat(r[curData.columns[1]])||0), curData.columns);
+  }
+}
+
+function rDist(type, labels, values) {
+  const ctx = document.getElementById('ch-dist'); if (!ctx) return;
+  chartInsts.dist = new Chart(ctx, {
+    type, data: { labels, datasets: [{ data:values, backgroundColor:PAL.map(c=>c+'99'), borderColor:PAL, borderWidth:1.5, hoverOffset:8 }]},
+    options: { responsive:true, maintainAspectRatio:false, animation:{duration:600},
+      plugins: { legend:{display:true,position:'bottom',labels:{color:'#6b6e8a',font:{size:10},padding:10,usePointStyle:true,boxWidth:8}}, tooltip:TT }
+    }
+  });
+}
+
+function swDist(type, btn) {
+  btn.closest('.cc-actions').querySelectorAll('.cc-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (chartInsts.dist) chartInsts.dist.destroy();
+  if (curData) {
+    const lim = parseInt(document.getElementById('f-limit').value) || 10;
+    const s   = curData.data.slice(0, lim);
+    rDist(type, s.map(r=>String(r[curData.columns[0]])), s.map(r=>parseFloat(r[curData.columns[1]])||0));
+  }
+}
+
+function rHBar(labels, values, columns) {
+  const ctx = document.getElementById('ch-hbar'); if (!ctx) return;
+  const rl = [...labels].reverse(); const rv = [...values].reverse();
+  chartInsts.hbar = new Chart(ctx, {
+    type:'bar', data: { labels:rl, datasets:[{ label:columns[1]||'Value', data:rv,
+      backgroundColor:PAL.slice(0,rv.length).map(c=>c+'bb'), borderColor:PAL.slice(0,rv.length), borderWidth:1, borderRadius:3
+    }]},
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:{duration:500},
+      plugins: { legend:{display:false}, tooltip:TT },
+      scales: {
+        x:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e'}},
+        y:{ticks:{color:TC,font:{size:10}},grid:{display:false},border:{display:false}}
+      }
+    }
+  });
+}
+
+function rRadar(labels, values, columns) {
+  const ctx = document.getElementById('ch-radar'); if (!ctx) return;
+  const l8 = labels.slice(0,8); const v8 = values.slice(0,8);
+  chartInsts.radar = new Chart(ctx, {
+    type:'radar', data: { labels:l8, datasets:[{ label:columns[1]||'Value', data:v8,
+      backgroundColor:'rgba(0,212,255,0.1)', borderColor:'#00d4ff', borderWidth:2,
+      pointBackgroundColor:'#00d4ff', pointRadius:4
+    }]},
+    options: { responsive:true, maintainAspectRatio:false, animation:{duration:600},
+      plugins: { legend:{display:false}, tooltip:TT },
+      scales: { r: { ticks:{color:TC,font:{size:9},callback:v=>fmtN(v),backdropColor:'transparent'},
+        grid:{color:GC}, pointLabels:{color:'#6b6e8a',font:{size:9}}, angleLines:{color:GC}
+      }}
+    }
+  });
+}
+
+function rTable(columns, data, values) {
+  const maxV = Math.max(...values);
+  const tot  = values.reduce((a,b)=>a+b,0);
+  const head = '<table><thead><tr><th>#</th>' + columns.map(c=>`<th>${c}</th>`).join('') + '<th>Share</th></tr></thead><tbody>';
+  const rows = data.map((row,i) => {
+    const v    = parseFloat(row[columns[1]]) || 0;
+    const pct  = maxV > 0 ? (v/maxV*100).toFixed(0) : 0;
+    const shr  = tot  > 0 ? (v/tot*100).toFixed(1)+'%' : '—';
+    const cols = columns.map((c,ci) => {
+      const val   = row[c] ?? '';
+      const isNum = ci > 0 && (typeof val === 'number' || (!isNaN(parseFloat(val)) && String(val).trim() !== ''));
+      return `<td class="${isNum?'num':''}">${isNum ? fmtN(parseFloat(val)) : val}</td>`;
+    }).join('');
+    return `<tr><td class="rank">${i+1}</td>${cols}<td><div class="bar-cell"><div class="inline-bar" style="width:${Math.min(pct,80)}px"></div><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--dim)">${shr}</span></div></td></tr>`;
+  }).join('');
+  document.getElementById('tbl-wrap').innerHTML = head + rows + '</tbody></table>';
+}
+
+function rSQL(sql) {
+  const kw = {
+    SELECT:'#ff4081', FROM:'#ff7043', 'JOIN':'#00d4ff', ON:'#40c4ff',
+    WHERE:'#76ff03', 'GROUP BY':'#76ff03', 'ORDER BY':'#76ff03',
+    HAVING:'#76ff03', LIMIT:'#ffd740', AS:'#b0b0c0',
+    AND:'#b388ff', OR:'#b388ff', DESC:'#ffd740', ASC:'#ffd740',
+    SUM:'#ea80fc', COUNT:'#ea80fc', AVG:'#ea80fc', MAX:'#ea80fc', MIN:'#ea80fc',
+    DISTINCT:'#ff4081'
+  };
+  let h = sql;
+  Object.entries(kw).forEach(([k,c]) => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span style="color:${c};font-weight:600">${k}</span>`); });
+  document.getElementById('sql-code').innerHTML = h;
+}
+
+function copySQL() {
+  const t = document.getElementById('sql-code')?.innerText;
+  if (!t) return;
+  navigator.clipboard.writeText(t).then(() => {
+    const b = document.querySelector('.copy-btn');
+    b.textContent = 'COPIED!'; b.style.color = 'var(--lime)';
+    setTimeout(() => { b.textContent = 'COPY'; b.style.color = ''; }, 1500);
+  });
+}
+
+function addHist(q, rows) {
+  history.unshift({q, rows});
+  if (history.length > 5) history.pop();
+  document.getElementById('hist-head').style.display = 'block';
+  document.getElementById('hist-list').innerHTML = history.map(h =>
+    `<div class="hist-item" onclick="setQ('${h.q.replace(/'/g,"\\'")}');runQuery()">
+      <span style="color:var(--cyan);font-size:10px">▸</span>
+      <span class="hist-q">${h.q}</span>
+      <span class="hist-n">${h.rows}r</span>
+    </div>`
+  ).join('');
+}
+
+document.getElementById('question').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runQuery(); }
+});
 </script>
 </body>
 </html>
