@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse   # ✅ ADD THIS
 from pydantic import BaseModel
 from yml_parser import load_schema
 from nl2sql_agent import generate_sql
@@ -13,6 +14,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ✅ ADD THIS ROUTE (serves index.html)
+@app.get("/")
+def serve_home():
+    return FileResponse("index.html")
+
 
 class QueryRequest(BaseModel):
     question: str
@@ -32,6 +39,7 @@ def query(req: QueryRequest):
 
     except Exception as e:
         return {"error": str(e)}
+
 
 if __name__ == "__main__":
     import uvicorn
