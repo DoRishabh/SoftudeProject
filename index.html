@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AdventureWorks AI Q&A</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --border: #2a2a3e;
+      --accent1: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --accent4: #10b981;
+      --accent5: #f43f5e;
+      --text: #f0f0ff;
+      --muted: #6b6b8a;
+      --glow1: rgba(124,58,237,0.3);
+      --glow2: rgba(6,182,212,0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      animation: float 8s ease-in-out infinite;
+    }
+    .orb1 { width: 400px; height: 400px; background: var(--glow1); top: -100px; left: -100px; animation-delay: 0s; }
+    .orb2 { width: 300px; height: 300px; background: var(--glow2); bottom: -50px; right: -50px; animation-delay: -4s; }
+    .orb3 { width: 200px; height: 200px; background: rgba(245,158,11,0.15); top: 50%; left: 50%; animation-delay: -2s; }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.05); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown 0.8s ease both;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .logo-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--accent1) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+
+    .stat-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 8px 20px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .stat-pill:hover { border-color: var(--accent1); transform: translateY(-2px); }
+    .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Search box */
+    .search-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.8s 0.3s ease both;
+      transition: border-color 0.3s;
+    }
+
+    .search-card:focus-within { border-color: var(--accent1); box-shadow: 0 0 40px var(--glow1); }
+
+    .search-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    input[type="text"]::placeholder { color: var(--muted); }
+    input[type="text"]:focus { border-color: var(--accent1); background: #15152a; }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .send-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .send-btn:hover::after { opacity: 1; }
+    .send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow1); }
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Quick queries */
+    .quick-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 16px 0 10px;
+      display: block;
+    }
+
+    .quick-queries {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 7px 16px;
+      font-size: 12.5px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.25s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .quick-btn:hover {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(6,182,212,0.08);
+      transform: translateY(-1px);
+    }
+
+    /* Loading */
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 48px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .loader-inner {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .spinner-ring {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent1);
+      border-right-color: var(--accent2);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      animation: blink 1.5s ease infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* Error */
+    .error-box {
+      display: none;
+      background: rgba(244,63,94,0.1);
+      border: 1px solid rgba(244,63,94,0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #fb7185;
+      font-size: 14px;
+      margin-bottom: 24px;
+      font-family: 'DM Mono', monospace;
+      line-height: 1.6;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    /* Results section */
+    .results {
+      display: none;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Chart type selector */
+    .chart-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .result-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--accent4);
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .chart-type-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .chart-type-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .chart-type-btn.active, .chart-type-btn:hover {
+      border-color: var(--accent1);
+      color: var(--text);
+      background: rgba(124,58,237,0.15);
+    }
+
+    /* Chart card */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3));
+    }
+
+    .chart-container { position: relative; height: 380px; }
+
+    /* Data table */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .table-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .row-count {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 3px 12px;
+      font-size: 11px;
+    }
+
+    .table-wrap { overflow-x: auto; max-height: 280px; overflow-y: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+    thead th {
+      background: var(--surface2);
+      padding: 12px 20px;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      position: sticky;
+      top: 0;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-top: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+      padding: 11px 20px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    tbody td:nth-child(2) { color: var(--accent3); font-family: 'DM Mono', monospace; font-weight: 500; }
+
+    /* SQL block */
+    .sql-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .sql-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .copy-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    .sql-body {
+      padding: 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #a5b4fc;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Keyword highlighting */
+    .kw-select { color: var(--accent5); font-weight: 500; }
+    .kw-from { color: var(--accent3); font-weight: 500; }
+    .kw-join { color: var(--accent2); font-weight: 500; }
+    .kw-where { color: var(--accent4); font-weight: 500; }
+
+    /* History */
+    .history-section {
+      margin-top: 40px;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .history-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .history-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .history-item:hover {
+      border-color: var(--accent1);
+      background: rgba(124,58,237,0.08);
+      transform: translateX(4px);
+    }
+
+    .history-q { flex: 1; }
+    .history-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-left: 16px; }
+    .history-rows { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent4); margin-left: 12px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent1); }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .search-row { flex-direction: column; }
+      .chart-controls { flex-direction: column; align-items: flex-start; }
+      .stats-bar { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-badge">AdventureWorks AI</div>
+    <h1>Rishabh's<br/>Command Center</h1>
+    <p class="subtitle">Plain English → SQL → Instant Charts &nbsp;·&nbsp; Powered by Groq + Snowflake</p>
+  </header>
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="stat-pill"><span class="stat-dot" style="background:#04b9f0"></span> 5 Tables</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#f5f107"></span> 55K+ Orders</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#fc0480"></span> 18K Customers</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#5a0303"></span> 397 Products</div>
+    <div class="stat-pill"><span class="stat-dot" style="background:#f43f5e; animation: pulse 2s infinite"></span> Live</div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-card">
+    <span class="search-label">Ask a question</span>
+    <div class="search-row">
+      <input type="text" id="question" placeholder="e.g. Top 10 products by sales amount..." />
+      <button class="send-btn" id="send-btn" onclick="askQuestion()">Ask AI →</button>
+    </div>
+    <span class="quick-label">Try these →</span>
+    <div class="quick-queries">
+      <button class="quick-btn" onclick="setQ('Top 10 products by total sales amount')">🏆 Top products by sales</button>
+      <button class="quick-btn" onclick="setQ('Total sales amount by territory region')">🌍 Sales by territory</button>
+      <button class="quick-btn" onclick="setQ('Top 10 customers by total sales amount')">👥 Top customers</button>
+      <button class="quick-btn" onclick="setQ('Total sales by product category')">📦 Sales by category</button>
+      <button class="quick-btn" onclick="setQ('Top 10 products by order quantity')">📊 Most ordered products</button>
+      <button class="quick-btn" onclick="setQ('Sales amount by country')">🗺️ Sales by country</button>
+      <button class="quick-btn" onclick="setQ('Top 5 product models by revenue')">⭐ Top models by revenue</button>
+      <button class="quick-btn" onclick="setQ('Average unit price by product category')">💰 Avg price by category</button>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader-inner">
+      <div class="spinner-ring"></div>
+      <div class="loader-text" id="loader-text">Generating SQL...</div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="error-box"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+
+    <div class="chart-controls">
+      <div class="result-title">
+        <span id="result-question-label">Results</span>
+        <span class="result-badge" id="result-badge">0 rows</span>
+      </div>
+      <div class="chart-type-btns">
+        <button class="chart-type-btn active" onclick="switchChart('bar', this)">Bar</button>
+        <button class="chart-type-btn" onclick="switchChart('line', this)">Line</button>
+        <button class="chart-type-btn" onclick="switchChart('doughnut', this)">Donut</button>
+        <button class="chart-type-btn" onclick="switchChart('polarArea', this)">Polar</button>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-card">
+      <div class="chart-container">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <span>Raw Data</span>
+        <span class="row-count" id="row-count-badge">0 rows</span>
+      </div>
+      <div class="table-wrap">
+        <table id="data-table">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SQL -->
+    <div class="sql-card">
+      <div class="sql-header">
+        <span>Generated SQL</span>
+        <button class="copy-btn" onclick="copySQL()">Copy</button>
+      </div>
+      <div class="sql-body" id="sql-display"></div>
+    </div>
+
+  </div>
+
+  <!-- History -->
+  <div class="history-section" id="history-section" style="display:none">
+    <div class="section-label">Query History</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+</div>
+
+<script>
+  let chartInstance = null;
+  let currentData = null;
+  let queryHistory = [];
+
+  const COLORS = [
+    '#7c3aed','#06b6d4','#f59e0b','#10b981','#f43f5e',
+    '#8b5cf6','#0ea5e9','#fbbf24','#34d399','#fb7185',
+    '#a78bfa','#38bdf8','#fcd34d','#6ee7b7','#fda4af'
+  ];
+
+  const loaderMessages = [
+    'Parsing your question...', 'Reading schema...', 'Generating SQL...', 'Querying Snowflake...', 'Building your chart...'
+  ];
+
+  function setQ(q) {
+    document.getElementById('question').value = q;
+    document.getElementById('question').focus();
+  }
+
+  function animateLoader() {
+    let i = 0;
+    const el = document.getElementById('loader-text');
+    return setInterval(() => {
+      el.textContent = loaderMessages[i % loaderMessages.length];
+      i++;
+    }, 900);
+  }
+
+  async function askQuestion() {
+    const question = document.getElementById('question').value.trim();
+    if (!question) return;
+
+    document.getElementById('send-btn').disabled = true;
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('error-box').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    const loaderInterval = animateLoader();
+
+    try {
+      const res = await fetch('http://localhost:8000/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      const json = await res.json();
+
+      if (json.error) {
+        showError('⚠ ' + json.error + (json.sql ? '\n\nGenerated SQL:\n' + json.sql : ''));
+        return;
+      }
+
+      if (!json.data || json.data.length === 0) {
+        showError('No results returned. Try a different question.');
+        return;
+      }
+
+      currentData = json;
+      renderResults(json, question);
+      addToHistory(question, json.data.length);
+
+    } catch (err) {
+      showError('Cannot reach the API. Make sure uvicorn is running:\n\nuvicorn api:app --reload');
+    } finally {
+      clearInterval(loaderInterval);
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('loader').style.display = 'none';
+    }
+  }
+
+  function renderResults(json, question) {
+    const { columns, data, sql } = json;
+
+    // Update labels
+    document.getElementById('result-question-label').textContent = question;
+    document.getElementById('result-badge').textContent = data.length + ' rows';
+    document.getElementById('row-count-badge').textContent = data.length + ' rows';
+
+    // Render chart (default bar)
+    renderChart('bar', columns, data);
+
+    // Render table
+    renderTable(columns, data);
+
+    // Render SQL
+    document.getElementById('sql-display').innerHTML = highlightSQL(sql);
+
+    // Show results
+    document.getElementById('results').style.display = 'block';
+
+    // Reset chart type buttons
+    document.querySelectorAll('.chart-type-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  }
+
+  function renderChart(type, columns, data) {
+    if (chartInstance) chartInstance.destroy();
+
+    const labels = data.map(r => String(r[columns[0]]));
+    const values = data.map(r => parseFloat(r[columns[1]]) || 0);
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    const isPie = type === 'doughnut' || type === 'polarArea';
+
+    chartInstance = new Chart(ctx, {
+      type: type,
+      data: {
+        labels,
+        datasets: [{
+          label: columns[1] || 'Value',
+          data: values,
+          backgroundColor: isPie ? COLORS.slice(0, data.length) : COLORS.map(c => c + 'cc'),
+          borderColor: isPie ? COLORS.slice(0, data.length) : COLORS,
+          borderWidth: isPie ? 2 : 1.5,
+          borderRadius: type === 'bar' ? 6 : 0,
+          hoverOffset: isPie ? 10 : 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 700, easing: 'easeOutQuart' },
+        plugins: {
+          legend: {
+            display: isPie,
+            labels: {
+              color: '#a0a0c0',
+              font: { family: 'DM Sans', size: 12 },
+              padding: 20,
+              usePointStyle: true,
+            }
+          },
+          tooltip: {
+            backgroundColor: '#1a1a26',
+            borderColor: '#2a2a3e',
+            borderWidth: 1,
+            titleColor: '#f0f0ff',
+            bodyColor: '#a0a0c0',
+            padding: 12,
+            cornerRadius: 10,
+            callbacks: {
+              label: ctx => ' ' + ctx.parsed.y?.toLocaleString() || ctx.parsed.toLocaleString()
+            }
+          }
+        },
+        scales: isPie ? {} : {
+          x: {
+            ticks: { color: '#6b6b8a', font: { family: 'DM Sans', size: 11 }, maxRotation: 30 },
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            border: { color: '#2a2a3e' }
+          },
+          y: {
+            ticks: {
+              color: '#6b6b8a',
+              font: { family: 'DM Mono', size: 11 },
+              callback: v => v >= 1000 ? (v/1000).toFixed(1)+'K' : v
+            },
+            grid: { color: 'rgba(255,255,255,0.06)' },
+            border: { color: '#2a2a3e', dash: [4, 4] }
+          }
+        }
+      }
+    });
+  }
+
+  function switchChart(type, btn) {
+    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (currentData) renderChart(type, currentData.columns, currentData.data);
+  }
+
+  function renderTable(columns, data) {
+    const head = document.getElementById('table-head');
+    const body = document.getElementById('table-body');
+    head.innerHTML = '<tr>' + columns.map(c => `<th>${c}</th>`).join('') + '</tr>';
+    body.innerHTML = data.map(row =>
+      '<tr>' + columns.map(c => `<td>${row[c] ?? ''}</td>`).join('') + '</tr>'
+    ).join('');
+  }
+
+  function highlightSQL(sql) {
+    return sql
+      .replace(/\b(SELECT|FROM|JOIN|ON|WHERE|GROUP BY|ORDER BY|HAVING|LIMIT|AS|INNER|LEFT|RIGHT|AND|OR|DESC|ASC|SUM|COUNT|AVG|MAX|MIN|DISTINCT)\b/gi,
+        m => `<span style="color:${
+          /SELECT|DISTINCT/.test(m.toUpperCase()) ? '#f43f5e' :
+          /FROM/.test(m.toUpperCase()) ? '#f59e0b' :
+          /JOIN|ON/.test(m.toUpperCase()) ? '#06b6d4' :
+          /WHERE|AND|OR/.test(m.toUpperCase()) ? '#10b981' :
+          /SUM|COUNT|AVG|MAX|MIN/.test(m.toUpperCase()) ? '#a78bfa' :
+          '#7c3aed'
+        };font-weight:500">${m}</span>`
+      );
+  }
+
+  function copySQL() {
+    const sql = document.getElementById('sql-display').innerText;
+    navigator.clipboard.writeText(sql).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      btn.style.color = 'var(--accent4)';
+      btn.style.borderColor = 'var(--accent4)';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
+    });
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.style.display = 'block';
+  }
+
+  function addToHistory(question, rows) {
+    const now = new Date();
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    queryHistory.unshift({ question, rows, time });
+    if (queryHistory.length > 6) queryHistory.pop();
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const section = document.getElementById('history-section');
+    const list = document.getElementById('history-list');
+    section.style.display = 'block';
+    list.innerHTML = queryHistory.map(h => `
+      <div class="history-item" onclick="setQ('${h.question.replace(/'/g,"\\'")}')">
+        <span class="history-q">${h.question}</span>
+        <span class="history-rows">${h.rows} rows</span>
+        <span class="history-time">${h.time}</span>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('question').addEventListener('keydown', e => {
+    if (e.key === 'Enter') askQuestion();
+  });
+</script>
+</body>
+</html>
