@@ -1,8 +1,13 @@
 # AdventureWorks AI Q&A Tool
 
-A local web app where you type a business question in plain English, 
-the AI reads the database schema, generates SQL, runs it on Snowflake, 
-and returns the answer as an interactive chart.
+A full-stack AI-powered analytics dashboard where you type a business 
+question in plain English, the AI reads the AdventureWorks database schema, 
+generates Snowflake SQL using Groq (LLaMA 3.3), executes it live, and 
+returns the answer as an interactive Power BI-style dashboard with 
+multiple charts, KPI cards, and data tables.
+
+# Project Link
+https://softudeproject.onrender.com/
 
 ## Stack
 - Groq (LLaMA 3.3) — natural language to SQL
