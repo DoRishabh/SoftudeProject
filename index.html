@@ -312,10 +312,14 @@ function filterChanged() {
   }
 
   // Strip previous filter suffixes from question
-  let baseQ = q
-    .replace(/ for category [A-Za-z]+/gi, '')
-    .replace(/ in territory [\w ]+/gi, '')
+     let baseQ = q
+    .replace(/\s+for category\s+[\w\s,]+?(?=\s+in territory|\s+for category|$)/gi, '')
+    .replace(/\s+in territory\s+[\w\s,]+?(?=\s+for category|\s+in territory|$)/gi, '')
     .trim();
+
+console.log('DEBUG | original q:', q);
+console.log('DEBUG | baseQ after strip:', baseQ);
+console.log('DEBUG | cat:', cat, '| terr:', terr);
 
   // Build new filter extras
   let extras = [];
