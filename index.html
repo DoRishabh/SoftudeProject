@@ -18,8 +18,6 @@
 }
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);pointer-events:none;z-index:999;}
-
-/* TOP NAV */
 .topnav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:48px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;}
 .nav-left{display:flex;align-items:center;gap:16px;}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
@@ -35,8 +33,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .refresh-btn{background:var(--panel);border:1px solid var(--border2);color:var(--dim);padding:5px 12px;font-size:11px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
 .refresh-btn:hover{color:var(--text);border-color:var(--cyan);}
-
-/* FILTER BAR */
 .filterbar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
 .filter-label{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
 .filter-select{background:var(--panel);border:1px solid var(--border2);color:var(--text);padding:5px 28px 5px 10px;font-size:12px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6e8a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:border-color 0.2s;min-width:130px;}
@@ -45,11 +41,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .filter-status{font-size:11px;color:var(--dim);font-family:'Space Mono',monospace;margin-left:4px;}
 .ask-ai-btn{margin-left:auto;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;padding:6px 16px;font-size:12px;font-weight:600;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity 0.2s;}
 .ask-ai-btn:hover{opacity:0.85;}
-
-/* BODY */
 .body-wrap{display:flex;flex:1;overflow:hidden;position:relative;}
-
-/* LOADING OVERLAY */
 .loading-overlay{display:none;position:absolute;inset:0;background:rgba(15,17,23,0.88);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 .loading-overlay.show{display:flex;}
 .spin-ring{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--cyan);border-right-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;}
@@ -59,8 +51,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .lsp{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimmer);transition:color 0.3s;}
 .lsp.active{color:var(--cyan);}
 .lsp.done{color:var(--green);}
-
-/* LEFT SIDEBAR */
 .left-panel{width:272px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 .lp-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;}
 .lp-body{flex:1;overflow-y:auto;padding:12px;}
@@ -90,8 +80,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .hist-item:hover{color:var(--text);border-color:var(--border2);}
 .hist-q{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .hist-n{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);flex-shrink:0;}
-
-/* DASHBOARD */
 .dashboard{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:14px;}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;}
@@ -154,7 +142,6 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
 </head>
 <body>
 
-<!-- TOP NAV -->
 <div class="topnav">
   <div class="nav-left">
     <div class="logo"><div class="logo-icon">R</div><div>Rishabh<span>Pulse</span></div></div>
@@ -163,6 +150,7 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
       <button class="nav-tab" onclick="navClick(this,'products')">Products</button>
       <button class="nav-tab" onclick="navClick(this,'customers')">Customers</button>
       <button class="nav-tab" onclick="navClick(this,'territories')">Territories</button>
+      <button class="nav-tab" onclick="showPowerBI(this)">Power BI ↗</button>
     </div>
   </div>
   <div class="nav-right">
@@ -171,7 +159,6 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
   </div>
 </div>
 
-<!-- FILTER BAR -->
 <div class="filterbar">
   <span class="filter-label">View</span>
   <select class="filter-select" id="f-category" onchange="filterChanged()">
@@ -205,10 +192,7 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
   <button class="ask-ai-btn" onclick="focusQ()">✦ Ask AI</button>
 </div>
 
-<!-- BODY -->
 <div class="body-wrap">
-
-  <!-- LOADING -->
   <div class="loading-overlay" id="loader">
     <div class="spin-ring"></div>
     <div class="loading-text" id="load-msg">QUERYING...</div>
@@ -220,7 +204,6 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
     </div>
   </div>
 
-  <!-- LEFT PANEL -->
   <div class="left-panel">
     <div class="lp-header">AI Query Engine</div>
     <div class="lp-body">
@@ -234,30 +217,30 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
 
       <div class="section-head">Quick Queries — Products</div>
       <div class="preset-list">
-        <div class="preset cp" onclick="setQ('Top 10 products by total sales amount')"><span class="ptag tp">PROD</span>Top 10 by sales</div>
-        <div class="preset cp" onclick="setQ('Top 10 products by order quantity')"><span class="ptag tp">PROD</span>Most ordered products</div>
-        <div class="preset cp" onclick="setQ('Total sales by product category')"><span class="ptag tp">PROD</span>Sales by category</div>
-        <div class="preset cp" onclick="setQ('Top 5 product models by total revenue')"><span class="ptag tp">PROD</span>Top models by revenue</div>
-        <div class="preset cp" onclick="setQ('Average unit price by product category')"><span class="ptag tp">PROD</span>Avg price by category</div>
+        <div class="preset cp" onclick="runPreset('Top 10 products by total sales amount')"><span class="ptag tp">PROD</span>Top 10 by sales</div>
+        <div class="preset cp" onclick="runPreset('Top 10 products by order quantity')"><span class="ptag tp">PROD</span>Most ordered products</div>
+        <div class="preset cp" onclick="runPreset('Total sales by product category')"><span class="ptag tp">PROD</span>Sales by category</div>
+        <div class="preset cp" onclick="runPreset('Top 5 product models by total revenue')"><span class="ptag tp">PROD</span>Top models by revenue</div>
+        <div class="preset cp" onclick="runPreset('Average unit price by product category')"><span class="ptag tp">PROD</span>Avg price by category</div>
       </div>
 
       <div class="section-head">Quick Queries — Territory</div>
       <div class="preset-list">
-        <div class="preset ct" onclick="setQ('Total sales amount by territory region')"><span class="ptag tt">TERR</span>Sales by territory</div>
-        <div class="preset ct" onclick="setQ('Sales amount by country')"><span class="ptag tt">TERR</span>Sales by country</div>
-        <div class="preset ct" onclick="setQ('Order quantity by territory region')"><span class="ptag tt">TERR</span>Orders by territory</div>
+        <div class="preset ct" onclick="runPreset('Total sales amount by territory region')"><span class="ptag tt">TERR</span>Sales by territory</div>
+        <div class="preset ct" onclick="runPreset('Sales amount by country')"><span class="ptag tt">TERR</span>Sales by country</div>
+        <div class="preset ct" onclick="runPreset('Order quantity by territory region')"><span class="ptag tt">TERR</span>Orders by territory</div>
       </div>
 
       <div class="section-head">Quick Queries — Customers</div>
       <div class="preset-list">
-        <div class="preset cc" onclick="setQ('Top 10 customers by total sales amount')"><span class="ptag tc">CUST</span>Top customers by sales</div>
-        <div class="preset cc" onclick="setQ('Top 10 customers by total sales amount')"><span class="ptag tc">CUST</span>Customers by orders</div>
-        <div class="preset cc" onclick="setQ('Sales by customer country region')"><span class="ptag tc">CUST</span>Sales by region</div>
+        <div class="preset cc" onclick="runPreset('Top 10 customers by total sales amount')"><span class="ptag tc">CUST</span>Top customers by sales</div>
+        <div class="preset cc" onclick="runPreset('Total sales amount by customer country region')"><span class="ptag tc">CUST</span>Sales by region</div>
       </div>
 
       <div class="section-head">Quick Queries — Misc</div>
       <div class="preset-list">
-        <div class="preset cm" onclick="runPreset('Total sales amount vs total product cost by category')"><span class="ptag tm">MISC</span>Total sales amount vs total product cost by category</div>
+        <div class="preset cm" onclick="runPreset('Total sales amount vs total product cost by category')"><span class="ptag tm">MISC</span>Revenue vs cost</div>
+        <div class="preset cm" onclick="runPreset('Total sales by product subcategory')"><span class="ptag tm">MISC</span>Sales by subcategory</div>
       </div>
 
       <div id="hist-head" style="display:none" class="section-head">Recent Queries</div>
@@ -265,7 +248,6 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div class="dashboard" id="dashboard">
     <div class="empty-dash" id="empty-state">
       <div class="empty-icon">📊</div>
@@ -273,20 +255,22 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
       <div class="empty-sub">PICK A PRESET OR TYPE A QUESTION TO BUILD YOUR DASHBOARD</div>
     </div>
   </div>
-
 </div>
 
 <script>
-// ── PALETTE ──────────────────────────────────────────────
 const PAL=['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-function runPreset(q) { setQ(q); runQuery(); }
-// ── NAV TAB QUERIES ───────────────────────────────────────
+const API_URL = 'https://softudeproject.onrender.com/query';
+const PBI_URL = 'https://app.powerbi.com/view?r=eyJrIjoiMGExMDEwM2ItODVhYy00YmM3LTlkMTQtOWZkZTNlODdkNzQ1IiwidCI6IjJiMGEzYjA0LTE2YmQtNDYzOC1iZTU3LTU2MjI1MjdlYjU1ZSJ9';
+
 const NAV_QUERIES = {
   dashboard: null,
   products:  'Top 10 products by total sales amount',
   customers: 'Top 10 customers by total sales amount',
-  territories:'Total sales amount by territory region'
+  territories: 'Total sales amount by territory region'
 };
+
+// ── CACHE ─────────────────────────────────────────────────
+const queryCache = {};
 
 function navClick(btn, tab) {
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
@@ -295,20 +279,31 @@ function navClick(btn, tab) {
   if (q) { setQ(q); runQuery(); }
 }
 
+function runPreset(q) { setQ(q); runQuery(); }
+
 // ── FILTER LOGIC ──────────────────────────────────────────
 function filterChanged() {
   const cat  = document.getElementById('f-category').value;
   const terr = document.getElementById('f-territory').value;
   const q    = document.getElementById('question').value.trim();
-  if (!q) return;
 
-  // Build filter context to append to question
+  if (!q && !cat && !terr) return;
+
+  if (!q) {
+    if (cat)  { setQ('Top 10 products by total sales amount for category ' + cat); runQuery(); }
+    else if (terr) { setQ('Total sales amount by territory region in ' + terr); runQuery(); }
+    return;
+  }
+
+  let baseQ = q
+    .replace(/\s+for category\s+[\w\s,]+?(?=\s+in territory|\s+for category|$)/gi, '')
+    .replace(/\s+in territory\s+[\w\s,]+?(?=\s+for category|\s+in territory|$)/gi, '')
+    .trim();
+
   let extras = [];
-  if (cat)  extras.push(`for category ${cat}`);
-  if (terr) extras.push(`in territory ${terr}`);
+  if (cat)  extras.push('for category ' + cat);
+  if (terr) extras.push('in territory ' + terr);
 
-  // Strip previous filter suffixes and re-append
-  let baseQ = q.replace(/ for category [A-Za-z]+/gi,'').replace(/ in territory [A-Za-z ]+/gi,'').trim();
   const newQ = extras.length ? baseQ + ' ' + extras.join(' ') : baseQ;
   document.getElementById('question').value = newQ;
   updateCt();
@@ -316,27 +311,21 @@ function filterChanged() {
 }
 
 function limitChanged() {
-  // Just re-render with new limit if we have data — no re-query needed
   if (curData) {
-    rebuildWithLimit();
+    const q = document.getElementById('question').value.trim() || 'Results';
+    buildDashboard(curData, q, false);
     const lim = document.getElementById('f-limit').value;
     document.getElementById('filter-status').textContent = `Top ${lim} of ${curData.data.length} rows`;
   }
 }
 
-function rebuildWithLimit() {
-  if (!curData) return;
-  const q = document.getElementById('question').value.trim() || 'Results';
-  buildDashboard(curData, q, false); // false = don't re-render SQL
-}
-
-// ── STATE ────────────────────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────
 let chartInsts = {};
 let curData    = null;
 let history    = [];
 
-function setQ(q)  { document.getElementById('question').value = q; updateCt(); }
-function focusQ() { document.getElementById('question').focus(); }
+function setQ(q)   { document.getElementById('question').value = q; updateCt(); }
+function focusQ()  { document.getElementById('question').focus(); }
 function updateCt(){ document.getElementById('char-ct').textContent = document.getElementById('question').value.length + 'c'; }
 
 function fmtN(n) {
@@ -346,7 +335,7 @@ function fmtN(n) {
   return n.toLocaleString();
 }
 
-// ── LOADER ───────────────────────────────────────────────
+// ── LOADER ────────────────────────────────────────────────
 let loaderInt = null;
 function showLoader() {
   document.getElementById('loader').classList.add('show');
@@ -363,24 +352,35 @@ function showLoader() {
 }
 function hideLoader() { clearInterval(loaderInt); document.getElementById('loader').classList.remove('show'); }
 
-// ── QUERY ────────────────────────────────────────────────
+// ── QUERY WITH CACHE ──────────────────────────────────────
 async function runQuery() {
   const q = document.getElementById('question').value.trim();
   if (!q) return;
+
+  // Cache hit — same question asked before
+  const cacheKey = q.toLowerCase().trim();
+  if (queryCache[cacheKey]) {
+    buildDashboard(queryCache[cacheKey], q, true);
+    addHist(q, queryCache[cacheKey].data.length);
+    document.getElementById('filter-status').textContent = `Showing top ${Math.min(parseInt(document.getElementById('f-limit').value)||10, queryCache[cacheKey].data.length)} of ${queryCache[cacheKey].data.length} rows (cached)`;
+    return;
+  }
+
   document.getElementById('run-btn').disabled = true;
   showLoader();
   try {
-    const res  = await fetch("https://softudeproject.onrender.com/query", { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
+    const res  = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
     const json = await res.json();
     hideLoader();
     if (json.error) { showError(json.error, json.sql); return; }
     if (!json.data || !json.data.length) { showError('Query returned 0 rows. Try rephrasing.'); return; }
+    queryCache[cacheKey] = json;
     curData = json;
     buildDashboard(json, q, true);
     addHist(q, json.data.length);
   } catch(e) {
     hideLoader();
-    showError('Cannot reach API.\n\nMake sure uvicorn is running:\n  uvicorn api:app --reload');
+    showError('Cannot reach API.\n\nMake sure the server is running.');
   } finally {
     document.getElementById('run-btn').disabled = false;
   }
@@ -388,14 +388,14 @@ async function runQuery() {
 
 function rerunCurrent() { runQuery(); }
 
-// ── ERROR ────────────────────────────────────────────────
+// ── ERROR ─────────────────────────────────────────────────
 function showError(msg, sql) {
   document.getElementById('dashboard').innerHTML =
     `<div class="error-card" style="display:block">⚠ ERROR\n\n${msg}${sql?'\n\nSQL:\n'+sql:''}</div>
      <div class="empty-dash"><div class="empty-icon">💡</div><div class="empty-title">Try a different question</div><div class="empty-sub">USE THE PRESETS ON THE LEFT TO GET STARTED</div></div>`;
 }
 
-// ── BUILD DASHBOARD ──────────────────────────────────────
+// ── BUILD DASHBOARD ───────────────────────────────────────
 function buildDashboard(json, question, renderSQL) {
   const {columns, data, sql} = json;
   const lim    = parseInt(document.getElementById('f-limit').value) || 10;
@@ -408,6 +408,7 @@ function buildDashboard(json, question, renderSQL) {
 
   Object.values(chartInsts).forEach(c => { try { c.destroy(); } catch(e) {} });
   chartInsts = {};
+  curData = json;
 
   const dash = document.getElementById('dashboard');
   dash.innerHTML = `
@@ -433,7 +434,6 @@ function buildDashboard(json, question, renderSQL) {
         <div class="kpi-sub">of ${data.length} total rows</div>
       </div>
     </div>
-
     <div class="chart-grid wide fade-up" style="animation-delay:0.05s">
       <div class="chart-card">
         <div class="cc-header">
@@ -457,7 +457,6 @@ function buildDashboard(json, question, renderSQL) {
         <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:240px"><canvas id="ch-dist"></canvas></div></div>
       </div>
     </div>
-
     <div class="chart-grid fade-up" style="animation-delay:0.1s">
       <div class="chart-card">
         <div class="cc-header"><div><div class="cc-title">Horizontal Ranking</div><div class="cc-sub">Sorted view</div></div></div>
@@ -468,7 +467,6 @@ function buildDashboard(json, question, renderSQL) {
         <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:200px"><canvas id="ch-radar"></canvas></div></div>
       </div>
     </div>
-
     <div class="chart-grid fade-up" style="animation-delay:0.15s">
       <div class="table-card">
         <div class="tc-header"><span class="tc-title">Data Table</span><span class="tc-meta">${sliced.length} rows · ${columns.length} cols</span></div>
@@ -478,8 +476,7 @@ function buildDashboard(json, question, renderSQL) {
         <div class="sql-hdr"><span class="sql-title">Generated SQL</span><button class="copy-btn" onclick="copySQL()">COPY</button></div>
         <div class="sql-body" id="sql-code"></div>
       </div>
-    </div>
-  `;
+    </div>`;
 
   setTimeout(() => {
     rMain('bar', labels, values, columns);
@@ -604,14 +601,7 @@ function rTable(columns, data, values) {
 }
 
 function rSQL(sql) {
-  const kw = {
-    SELECT:'#ff4081', FROM:'#ff7043', 'JOIN':'#00d4ff', ON:'#40c4ff',
-    WHERE:'#76ff03', 'GROUP BY':'#76ff03', 'ORDER BY':'#76ff03',
-    HAVING:'#76ff03', LIMIT:'#ffd740', AS:'#b0b0c0',
-    AND:'#b388ff', OR:'#b388ff', DESC:'#ffd740', ASC:'#ffd740',
-    SUM:'#ea80fc', COUNT:'#ea80fc', AVG:'#ea80fc', MAX:'#ea80fc', MIN:'#ea80fc',
-    DISTINCT:'#ff4081'
-  };
+  const kw = {SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',HAVING:'#76ff03',LIMIT:'#ffd740',AS:'#b0b0c0',AND:'#b388ff',OR:'#b388ff',DESC:'#ffd740',ASC:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc',MAX:'#ea80fc',MIN:'#ea80fc',DISTINCT:'#ff4081'};
   let h = sql;
   Object.entries(kw).forEach(([k,c]) => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span style="color:${c};font-weight:600">${k}</span>`); });
   document.getElementById('sql-code').innerHTML = h;
@@ -632,12 +622,153 @@ function addHist(q, rows) {
   if (history.length > 5) history.pop();
   document.getElementById('hist-head').style.display = 'block';
   document.getElementById('hist-list').innerHTML = history.map(h =>
-    `<div class="hist-item" onclick="setQ('${h.q.replace(/'/g,"\\'")}');runQuery()">
+    `<div class="hist-item" onclick="runPreset('${h.q.replace(/'/g,"\\'")}')">
       <span style="color:var(--cyan);font-size:10px">▸</span>
       <span class="hist-q">${h.q}</span>
       <span class="hist-n">${h.rows}r</span>
     </div>`
   ).join('');
+}
+
+// ── POWER BI TAB ──────────────────────────────────────────
+const pbiCache = {};
+
+function showPowerBI(btn) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const dash = document.getElementById('dashboard');
+  dash.style.padding = '0';
+  dash.innerHTML = `
+    <div style="display:flex;flex-direction:column;height:100%;gap:0;">
+      <div style="flex:1;background:var(--card);border-bottom:1px solid var(--border);display:flex;flex-direction:column;min-height:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime);animation:pulse 2s infinite;"></div>
+            <span style="font-size:12px;font-weight:600;">AdventureWorks — Power BI Report</span>
+            <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);background:var(--panel);border:1px solid var(--border);padding:2px 8px;border-radius:3px;">EMBEDDED LIVE</span>
+          </div>
+          <a href="${PBI_URL}" target="_blank" style="background:var(--cyan);color:#000;padding:5px 14px;border-radius:4px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">Open Full ↗</a>
+        </div>
+        <iframe
+          title="ADVENTUREWORKS"
+          style="flex:1;width:100%;border:none;display:block;min-height:460px;"
+          src="${PBI_URL}"
+          frameborder="0"
+          allowFullScreen="true">
+        </iframe>
+      </div>
+
+      <div style="background:var(--sidebar);border-top:2px solid var(--border2);padding:14px 20px;flex-shrink:0;">
+        <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+          AI Query Engine
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--purple);background:rgba(124,77,255,0.1);border:1px solid rgba(124,77,255,0.2);padding:1px 8px;border-radius:3px;">CACHE ENABLED</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input
+            type="text"
+            id="pbi-question"
+            placeholder="Ask a question about AdventureWorks data... (press Enter)"
+            style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color 0.3s;"
+            onfocus="this.style.borderColor='var(--cyan)'"
+            onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter') runPBIQuery()"
+          />
+          <button onclick="runPBIQuery()" style="background:var(--cyan);color:#000;border:none;padding:10px 20px;font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all 0.2s;flex-shrink:0;">▶ RUN</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <button onclick="setPBIQ('Top 10 products by total sales amount')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">Top products</button>
+          <button onclick="setPBIQ('Total sales amount by territory region')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lime)';this.style.color='var(--lime)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">By territory</button>
+          <button onclick="setPBIQ('Top 10 customers by total sales amount')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">Top customers</button>
+          <button onclick="setPBIQ('Total sales by product category')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">By category</button>
+        </div>
+        <div id="pbi-result" style="margin-top:12px;max-height:220px;overflow-y:auto;"></div>
+      </div>
+    </div>`;
+
+  // Reset dashboard padding
+  dash.style.padding = '0';
+  dash.style.gap = '0';
+}
+
+function setPBIQ(q) {
+  const inp = document.getElementById('pbi-question');
+  if (inp) { inp.value = q; inp.focus(); runPBIQuery(); }
+}
+
+async function runPBIQuery() {
+  const input = document.getElementById('pbi-question');
+  const q = input?.value.trim();
+  if (!q) return;
+
+  const resultBox = document.getElementById('pbi-result');
+  const cacheKey  = q.toLowerCase().trim();
+
+  // Cache hit
+  if (pbiCache[cacheKey]) {
+    renderPBIResult(pbiCache[cacheKey], q, true);
+    return;
+  }
+
+  resultBox.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);padding:10px 0;">
+      <div style="width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+      QUERYING SNOWFLAKE...
+    </div>`;
+
+  try {
+    const res  = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
+    const json = await res.json();
+    if (json.error) {
+      resultBox.innerHTML = `<div style="color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 14px;margin-top:4px;">⚠ ${json.error}</div>`;
+      return;
+    }
+    pbiCache[cacheKey] = json;
+    renderPBIResult(json, q, false);
+  } catch(e) {
+    resultBox.innerHTML = `<div style="color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 14px;margin-top:4px;">⚠ Cannot reach API.</div>`;
+  }
+}
+
+function renderPBIResult(json, q, fromCache) {
+  const { columns, data } = json;
+  const sliced = data.slice(0, 10);
+  const values = sliced.map(r => parseFloat(r[columns[1]]) || 0);
+  const labels = sliced.map(r => { const v = String(r[columns[0]]); return v.length > 18 ? v.substring(0,16)+'…' : v; });
+  const resultBox = document.getElementById('pbi-result');
+
+  resultBox.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--card2);border-bottom:1px solid var(--border);">
+        <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${q}</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:10px;">
+          ${fromCache
+            ? `<span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);padding:2px 8px;border-radius:3px;">CACHED</span>`
+            : `<span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);">LIVE</span>`}
+          <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);">${sliced.length} rows</span>
+        </div>
+      </div>
+      <div style="padding:12px;"><canvas id="pbi-chart" height="100"></canvas></div>
+    </div>`;
+
+  setTimeout(() => {
+    const ctx = document.getElementById('pbi-chart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets: [{ label: columns[1]||'Value', data: values,
+        backgroundColor: PAL.slice(0,values.length).map(c=>c+'bb'),
+        borderColor: PAL.slice(0,values.length), borderWidth:1.5, borderRadius:4
+      }]},
+      options: { responsive:true, maintainAspectRatio:false, animation:{duration:400},
+        plugins: { legend:{display:false}, tooltip:TT },
+        scales: {
+          x:{ticks:{color:TC,font:{size:10},maxRotation:30},grid:{color:GC},border:{color:'#2a2d3e'}},
+          y:{ticks:{color:TC,font:{family:'Space Mono',size:10},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
+        }
+      }
+    });
+  }, 60);
 }
 
 document.getElementById('question').addEventListener('keydown', e => {
