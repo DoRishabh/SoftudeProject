@@ -33,6 +33,9 @@ def push_to_powerbi(data: list, columns: list):
     try:
         if not data or len(columns) < 2:
             return
+        # Clear old data first so previous query doesn't stack
+        requests.delete(PBI_PUSH_URL, timeout=5)
+        # Push new rows
         rows = [
             {
                 "label": str(row[columns[0]]),
