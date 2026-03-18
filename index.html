@@ -300,15 +300,29 @@ function filterChanged() {
   const cat  = document.getElementById('f-category').value;
   const terr = document.getElementById('f-territory').value;
   const q    = document.getElementById('question').value.trim();
-  if (!q) return;
 
-  // Build filter context to append to question
+  // If no question yet and no filters selected, do nothing
+  if (!q && !cat && !terr) return;
+
+  // If no question but filter selected, build one automatically
+  if (!q) {
+    if (cat)  { setQ('Top 10 products by total sales amount for category ' + cat); runQuery(); }
+    else if (terr) { setQ('Total sales amount by territory region in ' + terr); runQuery(); }
+    return;
+  }
+
+  // Strip previous filter suffixes from question
+  let baseQ = q
+    .replace(/ for category [A-Za-z]+/gi, '')
+    .replace(/ in territory [\w ]+/gi, '')
+    .trim();
+
+  // Build new filter extras
   let extras = [];
-  if (cat)  extras.push(`for category ${cat}`);
-  if (terr) extras.push(`in territory ${terr}`);
+  if (cat)  extras.push('for category ' + cat);
+  if (terr) extras.push('in territory ' + terr);
 
-  // Strip previous filter suffixes and re-append
-  let baseQ = q.replace(/ for category [A-Za-z]+/gi,'').replace(/ in territory [A-Za-z ]+/gi,'').trim();
+  // Combine — if both empty (All selected) just use baseQ which reruns original
   const newQ = extras.length ? baseQ + ' ' + extras.join(' ') : baseQ;
   document.getElementById('question').value = newQ;
   updateCt();
