@@ -257,7 +257,7 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
 
       <div class="section-head">Quick Queries — Misc</div>
       <div class="preset-list">
-        <div class="preset cm" onclick="setQ('Total sales amount vs total product cost by category')"><span class="ptag tm">MISC</span>Total sales amount vs total product cost by category</div>
+        <div class="preset cm" onclick="runPreset('Total sales amount vs total product cost by category')"><span class="ptag tm">MISC</span>Total sales amount vs total product cost by category</div>
       </div>
 
       <div id="hist-head" style="display:none" class="section-head">Recent Queries</div>
@@ -279,7 +279,7 @@ tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimm
 <script>
 // ── PALETTE ──────────────────────────────────────────────
 const PAL=['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-
+function runPreset(q) { setQ(q); runQuery(); }
 // ── NAV TAB QUERIES ───────────────────────────────────────
 const NAV_QUERIES = {
   dashboard: null,
