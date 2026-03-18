@@ -3,777 +3,340 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RishabhPulse — AdventureWorks Analytics</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<title>RishabhPulse — AI Query + Power BI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0f1117;--sidebar:#13151c;--panel:#1a1d27;
+  --bg:#0f1117;--panel:#13151c;--card:#1e2130;--card2:#252838;
   --border:#2a2d3e;--border2:#353850;
-  --cyan:#00d4ff;--teal:#00b4a0;--orange:#ff7043;--lime:#76ff03;
-  --purple:#7c4dff;--pink:#ff4081;--yellow:#ffd740;--green:#00e676;
+  --cyan:#00d4ff;--lime:#76ff03;--orange:#ff7043;--purple:#7c4dff;
+  --pink:#ff4081;--green:#00e676;
   --text:#e2e4f0;--dim:#6b6e8a;--dimmer:#3a3d52;
-  --card:#1e2130;--card2:#252838;
 }
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);pointer-events:none;z-index:999;}
-.topnav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:48px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;}
-.nav-left{display:flex;align-items:center;gap:16px;}
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:46px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
-.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;}
+.logo-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;}
 .logo span{color:var(--cyan);}
-.nav-tabs{display:flex;gap:2px;}
-.nav-tab{padding:6px 14px;font-size:12px;font-weight:500;color:var(--dim);cursor:pointer;border-radius:4px;transition:all 0.2s;border:none;background:none;font-family:'Inter',sans-serif;}
-.nav-tab:hover{color:var(--text);background:var(--panel);}
-.nav-tab.active{color:var(--cyan);background:rgba(0,212,255,0.1);}
 .nav-right{display:flex;align-items:center;gap:12px;}
 .live-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.refresh-btn{background:var(--panel);border:1px solid var(--border2);color:var(--dim);padding:5px 12px;font-size:11px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
-.refresh-btn:hover{color:var(--text);border-color:var(--cyan);}
-.filterbar{display:flex;align-items:center;gap:10px;padding:8px 20px;background:var(--sidebar);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
-.filter-label{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
-.filter-select{background:var(--panel);border:1px solid var(--border2);color:var(--text);padding:5px 28px 5px 10px;font-size:12px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6e8a'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;transition:border-color 0.2s;min-width:130px;}
-.filter-select:focus{border-color:var(--cyan);}
-.filter-divider{width:1px;height:20px;background:var(--border);margin:0 2px;}
-.filter-status{font-size:11px;color:var(--dim);font-family:'Space Mono',monospace;margin-left:4px;}
-.ask-ai-btn{margin-left:auto;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;padding:6px 16px;font-size:12px;font-weight:600;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity 0.2s;}
-.ask-ai-btn:hover{opacity:0.85;}
-.body-wrap{display:flex;flex:1;overflow:hidden;position:relative;}
-.loading-overlay{display:none;position:absolute;inset:0;background:rgba(15,17,23,0.88);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
-.loading-overlay.show{display:flex;}
-.spin-ring{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--cyan);border-right-color:var(--purple);border-radius:50%;animation:spin 0.8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);}
-.loading-steps{display:flex;flex-direction:column;gap:4px;}
-.lsp{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimmer);transition:color 0.3s;}
-.lsp.active{color:var(--cyan);}
-.lsp.done{color:var(--green);}
-.left-panel{width:272px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.lp-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;}
-.lp-body{flex:1;overflow-y:auto;padding:12px;}
-.query-area{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px;transition:border-color 0.3s;}
-.query-area:focus-within{border-color:var(--cyan);}
-.query-textarea{width:100%;background:transparent;border:none;padding:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;resize:none;height:76px;line-height:1.5;}
-.query-textarea::placeholder{color:var(--dimmer);}
-.query-footer{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-top:1px solid var(--border);}
-.run-btn{background:var(--cyan);color:#000;border:none;padding:6px 16px;font-size:11px;font-weight:700;letter-spacing:0.5px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
-.run-btn:hover{box-shadow:0 0 16px rgba(0,212,255,0.4);}
+.pbi-push-badge{font-family:'Space Mono',monospace;font-size:9px;padding:3px 10px;border-radius:3px;background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);color:var(--lime);display:none;}
+.pbi-push-badge.show{display:inline-block;}
+
+/* LAYOUT — side by side */
+.main-body{flex:1;display:flex;overflow:hidden;}
+
+/* LEFT — Power BI */
+.pbi-panel{flex:1;display:flex;flex-direction:column;border-right:2px solid var(--border2);}
+.pbi-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.pbi-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.pbi-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);background:var(--panel);border:1px solid var(--border);padding:2px 8px;border-radius:3px;}
+.pbi-status{font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);display:none;}
+.pbi-status.show{display:inline-block;}
+.open-btn{background:var(--cyan);color:#000;padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;}
+iframe{flex:1;width:100%;border:none;display:block;}
+
+/* RIGHT — Query + Chart */
+.query-panel{width:420px;flex-shrink:0;display:flex;flex-direction:column;background:var(--panel);overflow:hidden;}
+.qp-header{padding:10px 16px;border-bottom:1px solid var(--border);background:var(--card2);}
+.qp-title{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;display:flex;align-items:center;gap:8px;}
+.cache-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--purple);background:rgba(124,77,255,0.1);border:1px solid rgba(124,77,255,0.2);padding:2px 7px;border-radius:3px;}
+.qp-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.query-row{display:flex;gap:8px;align-items:center;}
+.query-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color 0.3s;}
+.query-input:focus{border-color:var(--cyan);}
+.query-input::placeholder{color:var(--dimmer);}
+.run-btn{background:var(--cyan);color:#000;border:none;padding:9px 18px;font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap;}
+.run-btn:hover{box-shadow:0 0 16px rgba(0,212,255,0.35);}
 .run-btn:disabled{opacity:0.4;cursor:not-allowed;}
-.char-ct{font-size:10px;color:var(--dimmer);font-family:'Space Mono',monospace;}
-.section-head{font-size:10px;font-weight:600;color:var(--dimmer);text-transform:uppercase;letter-spacing:1.5px;margin:12px 0 7px;}
-.preset-list{display:flex;flex-direction:column;gap:3px;}
-.preset{padding:8px 10px;background:var(--card);border:1px solid var(--border);border-left:2px solid transparent;border-radius:0 4px 4px 0;font-size:12px;color:var(--dim);cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:7px;}
-.preset:hover{color:var(--text);transform:translateX(2px);}
-.cp:hover{border-left-color:var(--cyan);background:rgba(0,212,255,0.05);}
-.ct:hover{border-left-color:var(--lime);background:rgba(118,255,3,0.05);}
-.cc:hover{border-left-color:var(--orange);background:rgba(255,112,67,0.05);}
-.cm:hover{border-left-color:var(--purple);background:rgba(124,77,255,0.05);}
-.ptag{font-family:'Space Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;flex-shrink:0;}
-.tp{background:rgba(0,212,255,0.15);color:var(--cyan);}
-.tt{background:rgba(118,255,3,0.15);color:var(--lime);}
-.tc{background:rgba(255,112,67,0.15);color:var(--orange);}
-.tm{background:rgba(124,77,255,0.15);color:var(--purple);}
-.hist-item{padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--dim);cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.hist-item:hover{color:var(--text);border-color:var(--border2);}
-.hist-q{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.hist-n{font-family:'Space Mono',monospace;font-size:10px;color:var(--lime);flex-shrink:0;}
-.dashboard{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:14px;}
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;}
-.kpi-card:hover{border-color:var(--border2);transform:translateY(-1px);}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
-.kpi-card.c1::before{background:linear-gradient(90deg,var(--cyan),var(--teal));}
-.kpi-card.c2::before{background:linear-gradient(90deg,var(--orange),var(--yellow));}
-.kpi-card.c3::before{background:linear-gradient(90deg,var(--purple),var(--pink));}
-.kpi-card.c4::before{background:linear-gradient(90deg,var(--lime),var(--green));}
-.kpi-label{font-size:10px;color:var(--dim);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.8px;}
-.kpi-val{font-size:26px;font-weight:700;line-height:1;margin-bottom:6px;}
-.kpi-sub{font-size:11px;color:var(--dim);}
-.kpi-badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:12px;font-weight:600;margin-right:4px;}
-.kpi-up{background:rgba(0,230,118,0.15);color:var(--green);}
-.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.chart-grid.wide{grid-template-columns:2fr 1fr;}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;overflow:hidden;transition:border-color 0.2s;}
-.chart-card:hover{border-color:var(--border2);}
-.cc-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--card2);flex-shrink:0;}
-.cc-title{font-size:12px;font-weight:600;}
-.cc-sub{font-size:10px;color:var(--dim);margin-top:1px;}
-.cc-actions{display:flex;gap:3px;}
-.cc-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:3px 8px;font-size:9px;font-family:'Space Mono',monospace;border-radius:3px;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
-.cc-btn:hover,.cc-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,0.08);}
-.cc-body{flex:1;padding:12px;position:relative;}
-.cc-canvas-wrap{position:relative;height:100%;min-height:200px;}
-.table-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.tc-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--card2);}
-.tc-title{font-size:12px;font-weight:600;}
-.tc-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);}
-.tc-body{overflow-x:auto;max-height:200px;overflow-y:auto;}
-table{width:100%;border-collapse:collapse;}
-thead th{background:var(--panel);padding:8px 14px;text-align:left;font-size:9px;font-weight:600;color:var(--cyan);text-transform:uppercase;letter-spacing:1px;position:sticky;top:0;white-space:nowrap;border-bottom:1px solid var(--border2);}
-tbody tr{border-top:1px solid rgba(42,45,62,0.7);transition:background 0.15s;}
-tbody tr:hover{background:rgba(0,212,255,0.03);}
-tbody td{padding:7px 14px;font-size:12px;white-space:nowrap;}
-tbody td.num{font-family:'Space Mono',monospace;color:var(--orange);font-size:11px;}
-tbody td.rank{font-family:'Space Mono',monospace;font-size:10px;color:var(--dimmer);}
-.bar-cell{display:flex;align-items:center;gap:8px;}
-.inline-bar{height:4px;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:2px;transition:width 0.5s;}
-.sql-display{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.sql-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--card2);}
-.sql-title{font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
-.copy-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:3px 10px;font-size:9px;font-family:'Space Mono',monospace;border-radius:3px;cursor:pointer;transition:all 0.2s;}
-.copy-btn:hover{border-color:var(--lime);color:var(--lime);}
-.sql-body{padding:12px 14px;font-family:'Space Mono',monospace;font-size:11px;line-height:2;white-space:pre-wrap;word-break:break-all;max-height:110px;overflow-y:auto;}
-.error-card{background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-left:3px solid var(--pink);border-radius:0 8px 8px 0;padding:14px 16px;font-family:'Space Mono',monospace;font-size:11px;color:#ff80aa;line-height:1.8;white-space:pre-wrap;display:none;}
-.empty-dash{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;padding:60px;text-align:center;min-height:300px;}
-.empty-icon{font-size:48px;opacity:0.25;}
-.empty-title{font-size:18px;font-weight:700;color:var(--dimmer);}
-.empty-sub{font-size:11px;color:var(--dimmer);font-family:'Space Mono',monospace;}
+.quick-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.qbtn{background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.qbtn:hover{color:var(--text);border-color:var(--border2);}
+
+/* FLOW INDICATOR */
+.flow-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);line-height:1.8;display:none;}
+.flow-box.show{display:block;}
+.flow-step{display:flex;align-items:center;gap:8px;}
+.flow-step.done{color:var(--lime);}
+.flow-step.active{color:var(--cyan);animation:blink 1s infinite;}
+.flow-step.pending{color:var(--dimmer);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* RESULT */
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.result-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card2);border-bottom:1px solid var(--border);}
+.result-q{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.result-meta{display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px;}
+.tag-cached{font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);padding:2px 7px;border-radius:3px;}
+.tag-live{font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);}
+.tag-rows{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);}
+.result-body{padding:10px;}
+.err-box{color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 12px;}
+.sql-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;color:#6b8aff;white-space:pre-wrap;word-break:break-all;max-height:80px;overflow-y:auto;margin-top:8px;}
+
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--cyan);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.fade-up{animation:fadeUp 0.35s ease both;}
-@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}.chart-grid,.chart-grid.wide{grid-template-columns:1fr;}.left-panel{display:none;}}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <div class="topnav">
-  <div class="nav-left">
-    <div class="logo"><div class="logo-icon">R</div><div>Rishabh<span>Pulse</span></div></div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="navClick(this,'dashboard')">Dashboard</button>
-      <button class="nav-tab" onclick="navClick(this,'products')">Products</button>
-      <button class="nav-tab" onclick="navClick(this,'customers')">Customers</button>
-      <button class="nav-tab" onclick="navClick(this,'territories')">Territories</button>
-      <button class="nav-tab" onclick="showPowerBI(this)">Power BI ↗</button>
-    </div>
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div>Rishabh<span>Pulse</span></div>
   </div>
   <div class="nav-right">
+    <span class="pbi-push-badge" id="push-badge">✓ PUSHED TO POWER BI</span>
     <div class="live-badge"><div class="live-dot"></div>SNOWFLAKE LIVE</div>
-    <button class="refresh-btn" onclick="rerunCurrent()">⟳ Refresh</button>
   </div>
 </div>
 
-<div class="filterbar">
-  <span class="filter-label">View</span>
-  <select class="filter-select" id="f-category" onchange="filterChanged()">
-    <option value="">All Categories</option>
-    <option value="Bikes">Bikes</option>
-    <option value="Components">Components</option>
-    <option value="Clothing">Clothing</option>
-    <option value="Accessories">Accessories</option>
-  </select>
-  <select class="filter-select" id="f-territory" onchange="filterChanged()">
-    <option value="">All Territories</option>
-    <option value="Northwest">Northwest</option>
-    <option value="Northeast">Northeast</option>
-    <option value="Central">Central</option>
-    <option value="Southwest">Southwest</option>
-    <option value="Southeast">Southeast</option>
-    <option value="Canada">Canada</option>
-    <option value="France">France</option>
-    <option value="Germany">Germany</option>
-    <option value="Australia">Australia</option>
-    <option value="United Kingdom">United Kingdom</option>
-  </select>
-  <select class="filter-select" id="f-limit" onchange="limitChanged()">
-    <option value="5">Top 5</option>
-    <option value="10" selected>Top 10</option>
-    <option value="20">Top 20</option>
-    <option value="50">Top 50</option>
-  </select>
-  <div class="filter-divider"></div>
-  <span class="filter-status" id="filter-status">No query active</span>
-  <button class="ask-ai-btn" onclick="focusQ()">✦ Ask AI</button>
-</div>
+<!-- MAIN BODY -->
+<div class="main-body">
 
-<div class="body-wrap">
-  <div class="loading-overlay" id="loader">
-    <div class="spin-ring"></div>
-    <div class="loading-text" id="load-msg">QUERYING...</div>
-    <div class="loading-steps">
-      <div class="lsp" id="ls1">▸ Parsing question</div>
-      <div class="lsp" id="ls2">▸ Generating SQL via Groq</div>
-      <div class="lsp" id="ls3">▸ Querying Snowflake</div>
-      <div class="lsp" id="ls4">▸ Building dashboard</div>
+  <!-- LEFT — POWER BI REPORT -->
+  <div class="pbi-panel">
+    <div class="pbi-header">
+      <div class="pbi-title">
+        AI Query Results — Power BI
+        <span class="pbi-badge">LIVE STREAMING</span>
+        <span class="pbi-status" id="pbi-status">Waiting for query...</span>
+      </div>
+      <a class="open-btn" href="https://app.powerbi.com/view?r=eyJrIjoiOTc0NGYwY2UtMTEzNy00MGYwLWFiODEtNmQ4NjFiNGJhMzlhIiwidCI6IjJiMGEzYjA0LTE2YmQtNDYzOC1iZTU3LTU2MjI1MjdlYjU1ZSJ9" target="_blank">Open Full ↗</a>
     </div>
+    <iframe
+      id="pbi-frame"
+      title="AI Query Results"
+      src="https://app.powerbi.com/view?r=eyJrIjoiOTc0NGYwY2UtMTEzNy00MGYwLWFiODEtNmQ4NjFiNGJhMzlhIiwidCI6IjJiMGEzYjA0LTE2YmQtNDYzOC1iZTU3LTU2MjI1MjdlYjU1ZSJ9"
+      allowFullScreen="true">
+    </iframe>
   </div>
 
-  <div class="left-panel">
-    <div class="lp-header">AI Query Engine</div>
-    <div class="lp-body">
-      <div class="query-area">
-        <textarea class="query-textarea" id="question" placeholder="Ask a business question...&#10;&#10;e.g. Top 10 products by sales" oninput="updateCt()"></textarea>
-        <div class="query-footer">
-          <span class="char-ct" id="char-ct">0c</span>
-          <button class="run-btn" id="run-btn" onclick="runQuery()">▶ RUN</button>
+  <!-- RIGHT — AI QUERY PANEL -->
+  <div class="query-panel">
+    <div class="qp-header">
+      <div class="qp-title">
+        AI Query Engine
+        <span class="cache-badge">CACHE</span>
+      </div>
+    </div>
+    <div class="qp-body">
+
+      <!-- Input -->
+      <div>
+        <div class="query-row">
+          <input class="query-input" id="question" type="text"
+            placeholder="Ask a business question..."
+            onkeydown="if(event.key==='Enter') ask()"/>
+          <button class="run-btn" id="run-btn" onclick="ask()">▶ RUN</button>
         </div>
       </div>
 
-      <div class="section-head">Quick Queries — Products</div>
-      <div class="preset-list">
-        <div class="preset cp" onclick="runPreset('Top 10 products by total sales amount')"><span class="ptag tp">PROD</span>Top 10 by sales</div>
-        <div class="preset cp" onclick="runPreset('Top 10 products by order quantity')"><span class="ptag tp">PROD</span>Most ordered products</div>
-        <div class="preset cp" onclick="runPreset('Total sales by product category')"><span class="ptag tp">PROD</span>Sales by category</div>
-        <div class="preset cp" onclick="runPreset('Top 5 product models by total revenue')"><span class="ptag tp">PROD</span>Top models by revenue</div>
-        <div class="preset cp" onclick="runPreset('Average unit price by product category')"><span class="ptag tp">PROD</span>Avg price by category</div>
+      <!-- Quick buttons -->
+      <div>
+        <div style="font-size:10px;color:var(--dimmer);font-family:'Space Mono',monospace;margin-bottom:6px;letter-spacing:1px;">QUICK QUERIES</div>
+        <div class="quick-btns">
+          <button class="qbtn" onclick="quick('Top 10 products by total sales amount')">Top products</button>
+          <button class="qbtn" onclick="quick('Total sales by territory region')">By territory</button>
+          <button class="qbtn" onclick="quick('Top 10 customers by total sales amount')">Top customers</button>
+          <button class="qbtn" onclick="quick('Total sales by product category')">By category</button>
+          <button class="qbtn" onclick="quick('Sales amount by country')">By country</button>
+          <button class="qbtn" onclick="quick('Total sales by product subcategory')">By subcategory</button>
+        </div>
       </div>
 
-      <div class="section-head">Quick Queries — Territory</div>
-      <div class="preset-list">
-        <div class="preset ct" onclick="runPreset('Total sales amount by territory region')"><span class="ptag tt">TERR</span>Sales by territory</div>
-        <div class="preset ct" onclick="runPreset('Sales amount by country')"><span class="ptag tt">TERR</span>Sales by country</div>
-        <div class="preset ct" onclick="runPreset('Order quantity by territory region')"><span class="ptag tt">TERR</span>Orders by territory</div>
+      <!-- Flow indicator -->
+      <div class="flow-box" id="flow-box">
+        <div class="flow-step" id="f1">▸ Parsing question</div>
+        <div class="flow-step" id="f2">▸ Generating SQL via Groq</div>
+        <div class="flow-step" id="f3">▸ Querying Snowflake</div>
+        <div class="flow-step" id="f4">▸ Pushing to Power BI</div>
+        <div class="flow-step" id="f5">▸ Rendering chart</div>
       </div>
 
-      <div class="section-head">Quick Queries — Customers</div>
-      <div class="preset-list">
-        <div class="preset cc" onclick="runPreset('Top 10 customers by total sales amount')"><span class="ptag tc">CUST</span>Top customers by sales</div>
-        <div class="preset cc" onclick="runPreset('Total sales amount by customer country region')"><span class="ptag tc">CUST</span>Sales by region</div>
-      </div>
+      <!-- Result -->
+      <div id="result"></div>
 
-      <div class="section-head">Quick Queries — Misc</div>
-      <div class="preset-list">
-        <div class="preset cm" onclick="runPreset('Total sales amount vs total product cost by category')"><span class="ptag tm">MISC</span>Revenue vs cost</div>
-        <div class="preset cm" onclick="runPreset('Total sales by product subcategory')"><span class="ptag tm">MISC</span>Sales by subcategory</div>
-      </div>
-
-      <div id="hist-head" style="display:none" class="section-head">Recent Queries</div>
-      <div id="hist-list"></div>
     </div>
   </div>
 
-  <div class="dashboard" id="dashboard">
-    <div class="empty-dash" id="empty-state">
-      <div class="empty-icon">📊</div>
-      <div class="empty-title">No Query Active</div>
-      <div class="empty-sub">PICK A PRESET OR TYPE A QUESTION TO BUILD YOUR DASHBOARD</div>
-    </div>
-  </div>
 </div>
 
 <script>
-const PAL=['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-const API_URL = 'https://softudeproject.onrender.com/query';
-const PBI_URL = 'https://app.powerbi.com/view?r=eyJrIjoiMGExMDEwM2ItODVhYy00YmM3LTlkMTQtOWZkZTNlODdkNzQ1IiwidCI6IjJiMGEzYjA0LTE2YmQtNDYzOC1iZTU3LTU2MjI1MjdlYjU1ZSJ9';
-
-const NAV_QUERIES = {
-  dashboard: null,
-  products:  'Top 10 products by total sales amount',
-  customers: 'Top 10 customers by total sales amount',
-  territories: 'Total sales amount by territory region'
+const API   = 'https://softudeproject.onrender.com/query';
+const CACHE = {};
+const PAL   = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
+const GC    = 'rgba(42,45,62,0.8)';
+const TC    = '#4a4d6a';
+const TT    = {
+  backgroundColor:'#1e2130',borderColor:'#2a2d3e',borderWidth:1,
+  titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
+  callbacks:{ label: ctx => ' ' + fmtN(ctx.parsed.y !== undefined ? ctx.parsed.y : ctx.parsed) }
 };
-
-// ── CACHE ─────────────────────────────────────────────────
-const queryCache = {};
-
-function navClick(btn, tab) {
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const q = NAV_QUERIES[tab];
-  if (q) { setQ(q); runQuery(); }
-}
-
-function runPreset(q) { setQ(q); runQuery(); }
-
-// ── FILTER LOGIC ──────────────────────────────────────────
-function filterChanged() {
-  const cat  = document.getElementById('f-category').value;
-  const terr = document.getElementById('f-territory').value;
-  const q    = document.getElementById('question').value.trim();
-
-  if (!q && !cat && !terr) return;
-
-  if (!q) {
-    if (cat)  { setQ('Top 10 products by total sales amount for category ' + cat); runQuery(); }
-    else if (terr) { setQ('Total sales amount by territory region in ' + terr); runQuery(); }
-    return;
-  }
-
-  let baseQ = q
-    .replace(/\s+for category\s+[\w\s,]+?(?=\s+in territory|\s+for category|$)/gi, '')
-    .replace(/\s+in territory\s+[\w\s,]+?(?=\s+for category|\s+in territory|$)/gi, '')
-    .trim();
-
-  let extras = [];
-  if (cat)  extras.push('for category ' + cat);
-  if (terr) extras.push('in territory ' + terr);
-
-  const newQ = extras.length ? baseQ + ' ' + extras.join(' ') : baseQ;
-  document.getElementById('question').value = newQ;
-  updateCt();
-  runQuery();
-}
-
-function limitChanged() {
-  if (curData) {
-    const q = document.getElementById('question').value.trim() || 'Results';
-    buildDashboard(curData, q, false);
-    const lim = document.getElementById('f-limit').value;
-    document.getElementById('filter-status').textContent = `Top ${lim} of ${curData.data.length} rows`;
-  }
-}
-
-// ── STATE ─────────────────────────────────────────────────
-let chartInsts = {};
-let curData    = null;
-let history    = [];
-
-function setQ(q)   { document.getElementById('question').value = q; updateCt(); }
-function focusQ()  { document.getElementById('question').focus(); }
-function updateCt(){ document.getElementById('char-ct').textContent = document.getElementById('question').value.length + 'c'; }
+let chartInst = null;
 
 function fmtN(n) {
-  if (typeof n !== 'number') n = parseFloat(n) || 0;
-  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
-  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  n = parseFloat(n) || 0;
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
   return n.toLocaleString();
 }
 
-// ── LOADER ────────────────────────────────────────────────
-let loaderInt = null;
-function showLoader() {
-  document.getElementById('loader').classList.add('show');
-  ['ls1','ls2','ls3','ls4'].forEach(s => document.getElementById(s).className = 'lsp');
-  let i = 0;
-  const msgs = ['PARSING...','GENERATING SQL...','QUERYING SNOWFLAKE...','BUILDING DASHBOARD...'];
-  document.getElementById('load-msg').textContent = msgs[0];
-  document.getElementById('ls1').classList.add('active');
-  loaderInt = setInterval(() => {
-    if (i < 4) document.getElementById('ls'+(i+1)).classList.replace('active','done');
-    i++;
-    if (i < 4) { document.getElementById('load-msg').textContent = msgs[i]; document.getElementById('ls'+(i+1)).classList.add('active'); }
-  }, 750);
+function quick(q) {
+  document.getElementById('question').value = q;
+  ask();
 }
-function hideLoader() { clearInterval(loaderInt); document.getElementById('loader').classList.remove('show'); }
 
-// ── QUERY WITH CACHE ──────────────────────────────────────
-async function runQuery() {
+// ── FLOW STEPS ────────────────────────────────────────────
+let flowTimer = null;
+function startFlow() {
+  const box = document.getElementById('flow-box');
+  box.classList.add('show');
+  ['f1','f2','f3','f4','f5'].forEach(id => {
+    document.getElementById(id).className = 'flow-step pending';
+  });
+  let i = 1;
+  document.getElementById('f1').className = 'flow-step active';
+  flowTimer = setInterval(() => {
+    if (i <= 5) document.getElementById('f'+i).className = 'flow-step done';
+    i++;
+    if (i <= 5) document.getElementById('f'+i).className = 'flow-step active';
+    else clearInterval(flowTimer);
+  }, 700);
+}
+function stopFlow() { clearInterval(flowTimer); }
+
+// ── MAIN QUERY ────────────────────────────────────────────
+async function ask() {
   const q = document.getElementById('question').value.trim();
   if (!q) return;
 
-  // Cache hit — same question asked before
-  const cacheKey = q.toLowerCase().trim();
-  if (queryCache[cacheKey]) {
-    buildDashboard(queryCache[cacheKey], q, true);
-    addHist(q, queryCache[cacheKey].data.length);
-    document.getElementById('filter-status').textContent = `Showing top ${Math.min(parseInt(document.getElementById('f-limit').value)||10, queryCache[cacheKey].data.length)} of ${queryCache[cacheKey].data.length} rows (cached)`;
+  const key = q.toLowerCase();
+  const box = document.getElementById('result');
+
+  // Cache hit — no API call
+  if (CACHE[key]) {
+    render(CACHE[key], q, true);
+    // Still reload PBI iframe to show cached data
+    reloadPBI();
     return;
   }
 
   document.getElementById('run-btn').disabled = true;
-  showLoader();
+  document.getElementById('push-badge').classList.remove('show');
+  document.getElementById('pbi-status').textContent = 'Pushing data...';
+  document.getElementById('pbi-status').classList.add('show');
+  startFlow();
+  box.innerHTML = '';
+
   try {
-    const res  = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
+    const res  = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
     const json = await res.json();
-    hideLoader();
-    if (json.error) { showError(json.error, json.sql); return; }
-    if (!json.data || !json.data.length) { showError('Query returned 0 rows. Try rephrasing.'); return; }
-    queryCache[cacheKey] = json;
-    curData = json;
-    buildDashboard(json, q, true);
-    addHist(q, json.data.length);
+    stopFlow();
+
+    if (json.error) {
+      box.innerHTML = `<div class="err-box">⚠ ${json.error}</div>`;
+      document.getElementById('pbi-status').classList.remove('show');
+      return;
+    }
+    if (!json.data || !json.data.length) {
+      box.innerHTML = `<div class="err-box">⚠ No data returned. Try rephrasing.</div>`;
+      document.getElementById('pbi-status').classList.remove('show');
+      return;
+    }
+
+    CACHE[key] = json;
+
+    // Show push badge
+    document.getElementById('push-badge').classList.add('show');
+    document.getElementById('pbi-status').textContent = '✓ Data pushed — refreshing...';
+
+    // Reload Power BI iframe after short delay to show new data
+    setTimeout(() => reloadPBI(), 2000);
+    setTimeout(() => {
+      document.getElementById('pbi-status').textContent = '✓ Chart updated';
+      setTimeout(() => document.getElementById('pbi-status').classList.remove('show'), 3000);
+    }, 4000);
+
+    render(json, q, false);
+
   } catch(e) {
-    hideLoader();
-    showError('Cannot reach API.\n\nMake sure the server is running.');
+    stopFlow();
+    box.innerHTML = `<div class="err-box">⚠ Cannot reach API. Make sure server is running.</div>`;
+    document.getElementById('pbi-status').classList.remove('show');
   } finally {
     document.getElementById('run-btn').disabled = false;
   }
 }
 
-function rerunCurrent() { runQuery(); }
-
-// ── ERROR ─────────────────────────────────────────────────
-function showError(msg, sql) {
-  document.getElementById('dashboard').innerHTML =
-    `<div class="error-card" style="display:block">⚠ ERROR\n\n${msg}${sql?'\n\nSQL:\n'+sql:''}</div>
-     <div class="empty-dash"><div class="empty-icon">💡</div><div class="empty-title">Try a different question</div><div class="empty-sub">USE THE PRESETS ON THE LEFT TO GET STARTED</div></div>`;
+function reloadPBI() {
+  const frame = document.getElementById('pbi-frame');
+  const src   = frame.src;
+  frame.src   = '';
+  setTimeout(() => { frame.src = src; }, 100);
 }
 
-// ── BUILD DASHBOARD ───────────────────────────────────────
-function buildDashboard(json, question, renderSQL) {
-  const {columns, data, sql} = json;
-  const lim    = parseInt(document.getElementById('f-limit').value) || 10;
-  const sliced = data.slice(0, lim);
-  const labels = sliced.map(r => { const v = String(r[columns[0]]); return v.length > 20 ? v.substring(0,18)+'…' : v; });
-  const values = sliced.map(r => parseFloat(r[columns[1]]) || 0);
-  const total  = values.reduce((a,b) => a+b, 0);
-  const avg    = values.length ? total / values.length : 0;
-  const maxV   = values.length ? Math.max(...values) : 0;
-
-  Object.values(chartInsts).forEach(c => { try { c.destroy(); } catch(e) {} });
-  chartInsts = {};
-  curData = json;
-
-  const dash = document.getElementById('dashboard');
-  dash.innerHTML = `
-    <div class="kpi-row fade-up">
-      <div class="kpi-card c1">
-        <div class="kpi-label">Total ${columns[1]||'Value'}</div>
-        <div class="kpi-val" style="color:var(--cyan)">${fmtN(total)}</div>
-        <div class="kpi-sub"><span class="kpi-badge kpi-up">↑ Live</span>from Snowflake</div>
-      </div>
-      <div class="kpi-card c2">
-        <div class="kpi-label">Average</div>
-        <div class="kpi-val" style="color:var(--orange)">${fmtN(avg)}</div>
-        <div class="kpi-sub">per ${columns[0]||'item'}</div>
-      </div>
-      <div class="kpi-card c3">
-        <div class="kpi-label">Peak Value</div>
-        <div class="kpi-val" style="color:var(--purple)">${fmtN(maxV)}</div>
-        <div class="kpi-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${labels[0]||'—'}</div>
-      </div>
-      <div class="kpi-card c4">
-        <div class="kpi-label">Records</div>
-        <div class="kpi-val" style="color:var(--lime)">${sliced.length}</div>
-        <div class="kpi-sub">of ${data.length} total rows</div>
-      </div>
-    </div>
-    <div class="chart-grid wide fade-up" style="animation-delay:0.05s">
-      <div class="chart-card">
-        <div class="cc-header">
-          <div><div class="cc-title">${question}</div><div class="cc-sub">${columns[0]} vs ${columns[1]}</div></div>
-          <div class="cc-actions">
-            <button class="cc-btn active" onclick="swMain('bar',this)">BAR</button>
-            <button class="cc-btn" onclick="swMain('line',this)">LINE</button>
-            <button class="cc-btn" onclick="swMain('doughnut',this)">DONUT</button>
-          </div>
-        </div>
-        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:240px"><canvas id="ch-main"></canvas></div></div>
-      </div>
-      <div class="chart-card">
-        <div class="cc-header">
-          <div><div class="cc-title">Distribution</div><div class="cc-sub">Share breakdown</div></div>
-          <div class="cc-actions">
-            <button class="cc-btn active" onclick="swDist('doughnut',this)">DONUT</button>
-            <button class="cc-btn" onclick="swDist('polarArea',this)">POLAR</button>
-          </div>
-        </div>
-        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:240px"><canvas id="ch-dist"></canvas></div></div>
-      </div>
-    </div>
-    <div class="chart-grid fade-up" style="animation-delay:0.1s">
-      <div class="chart-card">
-        <div class="cc-header"><div><div class="cc-title">Horizontal Ranking</div><div class="cc-sub">Sorted view</div></div></div>
-        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:200px"><canvas id="ch-hbar"></canvas></div></div>
-      </div>
-      <div class="chart-card">
-        <div class="cc-header"><div><div class="cc-title">Radar Analysis</div><div class="cc-sub">Multi-axis view</div></div></div>
-        <div class="cc-body"><div class="cc-canvas-wrap" style="min-height:200px"><canvas id="ch-radar"></canvas></div></div>
-      </div>
-    </div>
-    <div class="chart-grid fade-up" style="animation-delay:0.15s">
-      <div class="table-card">
-        <div class="tc-header"><span class="tc-title">Data Table</span><span class="tc-meta">${sliced.length} rows · ${columns.length} cols</span></div>
-        <div class="tc-body" id="tbl-wrap"></div>
-      </div>
-      <div class="sql-display">
-        <div class="sql-hdr"><span class="sql-title">Generated SQL</span><button class="copy-btn" onclick="copySQL()">COPY</button></div>
-        <div class="sql-body" id="sql-code"></div>
-      </div>
-    </div>`;
-
-  setTimeout(() => {
-    rMain('bar', labels, values, columns);
-    rDist('doughnut', labels, values);
-    rHBar(labels, values, columns);
-    rRadar(labels, values, columns);
-    rTable(columns, sliced, values);
-    if (renderSQL) rSQL(sql);
-    document.getElementById('filter-status').textContent = `Showing top ${sliced.length} of ${data.length} rows`;
-  }, 60);
-}
-
-// ── CHART HELPERS ─────────────────────────────────────────
-const GC = 'rgba(42,45,62,0.8)';
-const TC = '#4a4d6a';
-const TT = { backgroundColor:'#1e2130', borderColor:'#2a2d3e', borderWidth:1, titleColor:'#e2e4f0', bodyColor:'#8a8da0', padding:10, cornerRadius:6,
-  callbacks: { label: ctx => ' ' + (ctx.parsed.y !== undefined ? fmtN(ctx.parsed.y) : fmtN(ctx.parsed)) }
-};
-
-function rMain(type, labels, values, columns) {
-  const ctx = document.getElementById('ch-main'); if (!ctx) return;
-  const isPie = type === 'doughnut';
-  chartInsts.main = new Chart(ctx, {
-    type, data: { labels, datasets: [{ label: columns[1]||'Value', data: values,
-      backgroundColor: isPie ? PAL.map(c=>c+'99') : PAL.slice(0,values.length).map(c=>c+'bb'),
-      borderColor: PAL.slice(0, values.length), borderWidth:1.5,
-      borderRadius: type==='bar'?4:0, tension:0.4,
-      fill: type==='line' ? {target:'origin',above:'rgba(0,212,255,0.07)'} : false
-    }]},
-    options: { responsive:true, maintainAspectRatio:false, animation:{duration:500},
-      plugins: { legend:{display:isPie,labels:{color:'#8a8da0',font:{size:10},padding:12,usePointStyle:true}}, tooltip:TT },
-      scales: isPie ? {} : {
-        x:{ticks:{color:TC,font:{size:10},maxRotation:30},grid:{color:GC},border:{color:'#2a2d3e'}},
-        y:{ticks:{color:TC,font:{family:'Space Mono',size:10},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
-      }
-    }
-  });
-}
-
-function swMain(type, btn) {
-  btn.closest('.cc-actions').querySelectorAll('.cc-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (chartInsts.main) chartInsts.main.destroy();
-  if (curData) {
-    const lim = parseInt(document.getElementById('f-limit').value) || 10;
-    const s   = curData.data.slice(0, lim);
-    rMain(type, s.map(r=>String(r[curData.columns[0]])), s.map(r=>parseFloat(r[curData.columns[1]])||0), curData.columns);
-  }
-}
-
-function rDist(type, labels, values) {
-  const ctx = document.getElementById('ch-dist'); if (!ctx) return;
-  chartInsts.dist = new Chart(ctx, {
-    type, data: { labels, datasets: [{ data:values, backgroundColor:PAL.map(c=>c+'99'), borderColor:PAL, borderWidth:1.5, hoverOffset:8 }]},
-    options: { responsive:true, maintainAspectRatio:false, animation:{duration:600},
-      plugins: { legend:{display:true,position:'bottom',labels:{color:'#6b6e8a',font:{size:10},padding:10,usePointStyle:true,boxWidth:8}}, tooltip:TT }
-    }
-  });
-}
-
-function swDist(type, btn) {
-  btn.closest('.cc-actions').querySelectorAll('.cc-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (chartInsts.dist) chartInsts.dist.destroy();
-  if (curData) {
-    const lim = parseInt(document.getElementById('f-limit').value) || 10;
-    const s   = curData.data.slice(0, lim);
-    rDist(type, s.map(r=>String(r[curData.columns[0]])), s.map(r=>parseFloat(r[curData.columns[1]])||0));
-  }
-}
-
-function rHBar(labels, values, columns) {
-  const ctx = document.getElementById('ch-hbar'); if (!ctx) return;
-  const rl = [...labels].reverse(); const rv = [...values].reverse();
-  chartInsts.hbar = new Chart(ctx, {
-    type:'bar', data: { labels:rl, datasets:[{ label:columns[1]||'Value', data:rv,
-      backgroundColor:PAL.slice(0,rv.length).map(c=>c+'bb'), borderColor:PAL.slice(0,rv.length), borderWidth:1, borderRadius:3
-    }]},
-    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, animation:{duration:500},
-      plugins: { legend:{display:false}, tooltip:TT },
-      scales: {
-        x:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e'}},
-        y:{ticks:{color:TC,font:{size:10}},grid:{display:false},border:{display:false}}
-      }
-    }
-  });
-}
-
-function rRadar(labels, values, columns) {
-  const ctx = document.getElementById('ch-radar'); if (!ctx) return;
-  const l8 = labels.slice(0,8); const v8 = values.slice(0,8);
-  chartInsts.radar = new Chart(ctx, {
-    type:'radar', data: { labels:l8, datasets:[{ label:columns[1]||'Value', data:v8,
-      backgroundColor:'rgba(0,212,255,0.1)', borderColor:'#00d4ff', borderWidth:2,
-      pointBackgroundColor:'#00d4ff', pointRadius:4
-    }]},
-    options: { responsive:true, maintainAspectRatio:false, animation:{duration:600},
-      plugins: { legend:{display:false}, tooltip:TT },
-      scales: { r: { ticks:{color:TC,font:{size:9},callback:v=>fmtN(v),backdropColor:'transparent'},
-        grid:{color:GC}, pointLabels:{color:'#6b6e8a',font:{size:9}}, angleLines:{color:GC}
-      }}
-    }
-  });
-}
-
-function rTable(columns, data, values) {
-  const maxV = Math.max(...values);
-  const tot  = values.reduce((a,b)=>a+b,0);
-  const head = '<table><thead><tr><th>#</th>' + columns.map(c=>`<th>${c}</th>`).join('') + '<th>Share</th></tr></thead><tbody>';
-  const rows = data.map((row,i) => {
-    const v    = parseFloat(row[columns[1]]) || 0;
-    const pct  = maxV > 0 ? (v/maxV*100).toFixed(0) : 0;
-    const shr  = tot  > 0 ? (v/tot*100).toFixed(1)+'%' : '—';
-    const cols = columns.map((c,ci) => {
-      const val   = row[c] ?? '';
-      const isNum = ci > 0 && (typeof val === 'number' || (!isNaN(parseFloat(val)) && String(val).trim() !== ''));
-      return `<td class="${isNum?'num':''}">${isNum ? fmtN(parseFloat(val)) : val}</td>`;
-    }).join('');
-    return `<tr><td class="rank">${i+1}</td>${cols}<td><div class="bar-cell"><div class="inline-bar" style="width:${Math.min(pct,80)}px"></div><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--dim)">${shr}</span></div></td></tr>`;
-  }).join('');
-  document.getElementById('tbl-wrap').innerHTML = head + rows + '</tbody></table>';
-}
-
-function rSQL(sql) {
-  const kw = {SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',HAVING:'#76ff03',LIMIT:'#ffd740',AS:'#b0b0c0',AND:'#b388ff',OR:'#b388ff',DESC:'#ffd740',ASC:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc',MAX:'#ea80fc',MIN:'#ea80fc',DISTINCT:'#ff4081'};
-  let h = sql;
-  Object.entries(kw).forEach(([k,c]) => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span style="color:${c};font-weight:600">${k}</span>`); });
-  document.getElementById('sql-code').innerHTML = h;
-}
-
-function copySQL() {
-  const t = document.getElementById('sql-code')?.innerText;
-  if (!t) return;
-  navigator.clipboard.writeText(t).then(() => {
-    const b = document.querySelector('.copy-btn');
-    b.textContent = 'COPIED!'; b.style.color = 'var(--lime)';
-    setTimeout(() => { b.textContent = 'COPY'; b.style.color = ''; }, 1500);
-  });
-}
-
-function addHist(q, rows) {
-  history.unshift({q, rows});
-  if (history.length > 5) history.pop();
-  document.getElementById('hist-head').style.display = 'block';
-  document.getElementById('hist-list').innerHTML = history.map(h =>
-    `<div class="hist-item" onclick="runPreset('${h.q.replace(/'/g,"\\'")}')">
-      <span style="color:var(--cyan);font-size:10px">▸</span>
-      <span class="hist-q">${h.q}</span>
-      <span class="hist-n">${h.rows}r</span>
-    </div>`
-  ).join('');
-}
-
-// ── POWER BI TAB ──────────────────────────────────────────
-const pbiCache = {};
-
-function showPowerBI(btn) {
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  const dash = document.getElementById('dashboard');
-  dash.style.padding = '0';
-  dash.innerHTML = `
-    <div style="display:flex;flex-direction:column;height:100%;gap:0;">
-      <div style="flex:1;background:var(--card);border-bottom:1px solid var(--border);display:flex;flex-direction:column;min-height:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 6px var(--lime);animation:pulse 2s infinite;"></div>
-            <span style="font-size:12px;font-weight:600;">AdventureWorks — Power BI Report</span>
-            <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);background:var(--panel);border:1px solid var(--border);padding:2px 8px;border-radius:3px;">EMBEDDED LIVE</span>
-          </div>
-          <a href="${PBI_URL}" target="_blank" style="background:var(--cyan);color:#000;padding:5px 14px;border-radius:4px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">Open Full ↗</a>
-        </div>
-        <iframe
-          title="ADVENTUREWORKS"
-          style="flex:1;width:100%;border:none;display:block;min-height:460px;"
-          src="${PBI_URL}"
-          frameborder="0"
-          allowFullScreen="true">
-        </iframe>
-      </div>
-
-      <div style="background:var(--sidebar);border-top:2px solid var(--border2);padding:14px 20px;flex-shrink:0;">
-        <div style="font-size:10px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
-          AI Query Engine
-          <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--purple);background:rgba(124,77,255,0.1);border:1px solid rgba(124,77,255,0.2);padding:1px 8px;border-radius:3px;">CACHE ENABLED</span>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <input
-            type="text"
-            id="pbi-question"
-            placeholder="Ask a question about AdventureWorks data... (press Enter)"
-            style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color 0.3s;"
-            onfocus="this.style.borderColor='var(--cyan)'"
-            onblur="this.style.borderColor='var(--border)'"
-            onkeydown="if(event.key==='Enter') runPBIQuery()"
-          />
-          <button onclick="runPBIQuery()" style="background:var(--cyan);color:#000;border:none;padding:10px 20px;font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all 0.2s;flex-shrink:0;">▶ RUN</button>
-        </div>
-        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-          <button onclick="setPBIQ('Top 10 products by total sales amount')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">Top products</button>
-          <button onclick="setPBIQ('Total sales amount by territory region')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--lime)';this.style.color='var(--lime)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">By territory</button>
-          <button onclick="setPBIQ('Top 10 customers by total sales amount')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">Top customers</button>
-          <button onclick="setPBIQ('Total sales by product category')" style="background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--purple)';this.style.color='var(--purple)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--dim)'">By category</button>
-        </div>
-        <div id="pbi-result" style="margin-top:12px;max-height:220px;overflow-y:auto;"></div>
-      </div>
-    </div>`;
-
-  // Reset dashboard padding
-  dash.style.padding = '0';
-  dash.style.gap = '0';
-}
-
-function setPBIQ(q) {
-  const inp = document.getElementById('pbi-question');
-  if (inp) { inp.value = q; inp.focus(); runPBIQuery(); }
-}
-
-async function runPBIQuery() {
-  const input = document.getElementById('pbi-question');
-  const q = input?.value.trim();
-  if (!q) return;
-
-  const resultBox = document.getElementById('pbi-result');
-  const cacheKey  = q.toLowerCase().trim();
-
-  // Cache hit
-  if (pbiCache[cacheKey]) {
-    renderPBIResult(pbiCache[cacheKey], q, true);
-    return;
-  }
-
-  resultBox.innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);padding:10px 0;">
-      <div style="width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--cyan);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
-      QUERYING SNOWFLAKE...
-    </div>`;
-
-  try {
-    const res  = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({question:q}) });
-    const json = await res.json();
-    if (json.error) {
-      resultBox.innerHTML = `<div style="color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 14px;margin-top:4px;">⚠ ${json.error}</div>`;
-      return;
-    }
-    pbiCache[cacheKey] = json;
-    renderPBIResult(json, q, false);
-  } catch(e) {
-    resultBox.innerHTML = `<div style="color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 14px;margin-top:4px;">⚠ Cannot reach API.</div>`;
-  }
-}
-
-function renderPBIResult(json, q, fromCache) {
-  const { columns, data } = json;
+// ── RENDER CHART ──────────────────────────────────────────
+function render(json, q, fromCache) {
+  const { columns, data, sql } = json;
   const sliced = data.slice(0, 10);
-  const values = sliced.map(r => parseFloat(r[columns[1]]) || 0);
   const labels = sliced.map(r => { const v = String(r[columns[0]]); return v.length > 18 ? v.substring(0,16)+'…' : v; });
-  const resultBox = document.getElementById('pbi-result');
+  const values = sliced.map(r => parseFloat(r[columns[1]]) || 0);
 
-  resultBox.innerHTML = `
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--card2);border-bottom:1px solid var(--border);">
-        <span style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${q}</span>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:10px;">
+  document.getElementById('result').innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <span class="result-q">${q}</span>
+        <div class="result-meta">
           ${fromCache
-            ? `<span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--lime);background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);padding:2px 8px;border-radius:3px;">CACHED</span>`
-            : `<span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);">LIVE</span>`}
-          <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);">${sliced.length} rows</span>
+            ? '<span class="tag-cached">CACHED</span>'
+            : '<span class="tag-live">LIVE</span>'}
+          <span class="tag-rows">${sliced.length} rows</span>
         </div>
       </div>
-      <div style="padding:12px;"><canvas id="pbi-chart" height="100"></canvas></div>
+      <div class="result-body">
+        <canvas id="res-chart" height="160"></canvas>
+        <div class="sql-box" id="sql-box"></div>
+      </div>
     </div>`;
 
+  // Highlight SQL
+  const kw = {SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',LIMIT:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc'};
+  let h = sql || '';
+  Object.entries(kw).forEach(([k,c]) => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span style="color:${c}">${k}</span>`); });
+  document.getElementById('sql-box').innerHTML = h;
+
   setTimeout(() => {
-    const ctx = document.getElementById('pbi-chart');
+    const ctx = document.getElementById('res-chart');
     if (!ctx) return;
-    new Chart(ctx, {
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(ctx, {
       type: 'bar',
       data: { labels, datasets: [{ label: columns[1]||'Value', data: values,
         backgroundColor: PAL.slice(0,values.length).map(c=>c+'bb'),
         borderColor: PAL.slice(0,values.length), borderWidth:1.5, borderRadius:4
       }]},
       options: { responsive:true, maintainAspectRatio:false, animation:{duration:400},
-        plugins: { legend:{display:false}, tooltip:TT },
-        scales: {
+        plugins:{ legend:{display:false}, tooltip:TT },
+        scales:{
           x:{ticks:{color:TC,font:{size:10},maxRotation:30},grid:{color:GC},border:{color:'#2a2d3e'}},
           y:{ticks:{color:TC,font:{family:'Space Mono',size:10},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
         }
       }
     });
-  }, 60);
+  }, 50);
 }
-
-document.getElementById('question').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); runQuery(); }
-});
 </script>
 </body>
 </html>
