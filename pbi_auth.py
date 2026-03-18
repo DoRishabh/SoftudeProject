@@ -1,0 +1,37 @@
+import os
+import requests
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+
+def get_pbi_token():
+    tenant_id     = os.getenv("AZURE_TENANT_ID")
+    client_id     = os.getenv("AZURE_CLIENT_ID")
+    client_secret = os.getenv("AZURE_CLIENT_SECRET")
+    url  = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    data = {
+        "grant_type":    "client_credentials",
+        "client_id":     client_id,
+        "client_secret": client_secret,
+        "scope":         "https://analysis.windows.net/powerbi/api/.default"
+    }
+    response = requests.post(url, data=data)
+    token = response.json().get("access_token")
+    print(f"Token fetch: {'OK' if token else 'FAILED'}")
+    return token
+
+def clear_pbi_rows():
+    token      = get_pbi_token()
+    dataset_id = os.getenv("PBI_DATASET_ID")
+    url        = f"https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/tables/RealTimeData/rows"
+    headers    = {"Authorization": f"Bearer {token}"}
+    resp       = requests.delete(url, headers=headers)
+    print(f"PBI clear: {resp.status_code} {resp.text}")
+
+def push_pbi_rows(rows: list):
+    token      = get_pbi_token()
+    dataset_id = os.getenv("PBI_DATASET_ID")
+    url        = f"https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/tables/RealTimeData/rows"
+    headers    = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    body       = {"rows": rows}
+    resp       = requests.post(url, headers=headers, json=body)
+    print(f"PBI push: {resp.status_code} {resp.text}")
