@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 
@@ -33,15 +34,13 @@ def push_to_powerbi(data: list, columns: list):
     try:
         if not data or len(columns) < 2:
             return
-        # Clear old data first so previous query doesn't stack
-        # DELETE URL is the push URL without the key query params
-        delete_url = "https://api.powerbi.com/beta/2b0a3b04-16bd-4638-be57-5622527eb55e/datasets/c893e7ae-aaff-41fe-a228-b81f15172acc/rows?experience=power-bi&key=3rcynk%2FYYoVmiC807RBINRp9cTWEttGcreseey81otkMLH1UDbvJV5EpRbcIqbjsZ%2BwMoU8nsqwAtH0R9qJwTQ%3D%3D"
-        requests.delete(delete_url, timeout=5)
-        # Push new rows
+        # Add current timestamp to each row so Power BI can filter by latest
+        now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         rows = [
             {
                 "label": str(row[columns[0]]),
-                "value": float(row[columns[1]]) if row[columns[1]] is not None else 0
+                "value": float(row[columns[1]]) if row[columns[1]] is not None else 0,
+                "querytime": now
             }
             for row in data[:10]
         ]
