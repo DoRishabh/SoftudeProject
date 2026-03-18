@@ -6,16 +6,18 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),
 def get_pbi_token():
     tenant_id     = os.getenv("AZURE_TENANT_ID")
     client_id     = os.getenv("AZURE_CLIENT_ID")
+    client_secret = os.getenv("AZURE_CLIENT_SECRET")
     username      = os.getenv("PBI_USERNAME")
     password      = os.getenv("PBI_PASSWORD")
 
     url  = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
     data = {
-        "grant_type": "password",
-        "client_id":  client_id,
-        "username":   username,
-        "password":   password,
-        "scope":      "https://analysis.windows.net/powerbi/api/.default"
+        "grant_type":    "password",
+        "client_id":     client_id,
+        "client_secret": client_secret,
+        "username":      username,
+        "password":      password,
+        "scope":         "https://analysis.windows.net/powerbi/api/.default"
     }
     response = requests.post(url, data=data)
     print(f"Token response: {response.status_code}")
@@ -24,7 +26,7 @@ def get_pbi_token():
     return token
 
 def clear_pbi_rows():
-    token      = get_pbi_token()
+    token = get_pbi_token()
     if not token:
         print("Skipping clear — no token")
         return
@@ -35,7 +37,7 @@ def clear_pbi_rows():
     print(f"PBI clear: {resp.status_code} {resp.text[:200]}")
 
 def push_pbi_rows(rows: list):
-    token      = get_pbi_token()
+    token = get_pbi_token()
     if not token:
         print("Skipping push — no token")
         return
