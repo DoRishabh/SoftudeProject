@@ -217,8 +217,10 @@ function stopFlow(){clearInterval(flowTimer);}
 
 function reloadPBI(){
   const fr=document.getElementById('pbi-frame');
-  const s=fr.src;fr.src='';
-  setTimeout(()=>{fr.src=s;},200);
+  fr.src='';
+  setTimeout(()=>{
+    fr.src='https://app.powerbi.com/view?r=eyJrIjoiOWIyZDEyZWQtZTVhYy00MDRiLWEzOWItOTk2OTA1NTE5YTE0IiwidCI6IjZiMjk0YWIxLWVmODYtNDIwZS1hZDlkLWYzNzM0MzhlMjFkMiJ9';
+  },500);
 }
 
 function showErr(msg){
@@ -256,7 +258,8 @@ async function ask(){
     CACHE[key]=json;
     document.getElementById('push-badge').classList.add('show');
     document.getElementById('pbi-status').textContent='✓ Data pushed — refreshing...';
-    setTimeout(()=>reloadPBI(),3000);
+    setTimeout(()=>reloadPBI(),5000);
+    setTimeout(()=>reloadPBI(),15000);
     setTimeout(()=>{
       document.getElementById('pbi-status').textContent='✓ Chart updated';
       setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),3000);
