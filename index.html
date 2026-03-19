@@ -90,6 +90,7 @@ iframe{flex:1;width:100%;border:none;display:block;}
 
 <div class="main-body">
 
+  <!-- LEFT — POWER BI STATIC EMBED — no reload tricks -->
   <div class="pbi-panel">
     <div class="pbi-header">
       <div class="pbi-title">
@@ -107,6 +108,7 @@ iframe{flex:1;width:100%;border:none;display:block;}
     </iframe>
   </div>
 
+  <!-- RIGHT — QUERY PANEL -->
   <div class="query-panel">
     <div class="qp-header">
       <div class="qp-title">AI Query Engine <span class="cache-badge">CACHE</span></div>
@@ -140,7 +142,6 @@ iframe{flex:1;width:100%;border:none;display:block;}
         <div class="flow-step" id="f5">▸ Rendering chart</div>
       </div>
 
-      <!-- PERMANENT CHART AREA — always in DOM -->
       <div class="result-card" id="result-card" style="display:none;">
         <div class="result-header">
           <span class="result-q" id="result-q">—</span>
@@ -165,24 +166,22 @@ iframe{flex:1;width:100%;border:none;display:block;}
 </div>
 
 <script>
-const API  = 'https://softudeproject.onrender.com/query';
-const CACHE= {};
-const PAL  = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-const GC   = 'rgba(42,45,62,0.8)';
-const TC   = '#4a4d6a';
-const TT   = {
+const API   = 'https://softudeproject.onrender.com/query';
+const CACHE = {};
+const PAL   = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
+const GC    = 'rgba(42,45,62,0.8)';
+const TC    = '#4a4d6a';
+const TT    = {
   backgroundColor:'#1e2130',borderColor:'#2a2d3e',borderWidth:1,
   titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
   callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
 };
 
-// Create chart ONCE — never destroy or recreate
-const chart = new Chart(document.getElementById('chart-canvas-area').getContext('2d'), {
+const chart = new Chart(document.getElementById('chart-canvas-area').getContext('2d'),{
   type:'bar',
   data:{labels:[],datasets:[{label:'Value',data:[],backgroundColor:[],borderColor:[],borderWidth:1.5,borderRadius:4}]},
   options:{
-    responsive:false,
-    animation:false,
+    responsive:false,animation:false,
     plugins:{legend:{display:false},tooltip:TT},
     scales:{
       x:{ticks:{color:TC,font:{size:9},maxRotation:35},grid:{color:GC},border:{color:'#2a2d3e'}},
@@ -204,8 +203,7 @@ let flowTimer=null;
 function startFlow(){
   document.getElementById('flow-box').classList.add('show');
   ['f1','f2','f3','f4','f5'].forEach(id=>document.getElementById(id).className='flow-step pending');
-  let i=1;
-  document.getElementById('f1').className='flow-step active';
+  let i=1;document.getElementById('f1').className='flow-step active';
   flowTimer=setInterval(()=>{
     if(i<=5)document.getElementById('f'+i).className='flow-step done';
     i++;
@@ -215,39 +213,24 @@ function startFlow(){
 }
 function stopFlow(){clearInterval(flowTimer);}
 
-function reloadPBI(){
-  const fr=document.getElementById('pbi-frame');
-  fr.src='';
-  setTimeout(()=>{
-    fr.src='https://app.powerbi.com/view?r=eyJrIjoiOWIyZDEyZWQtZTVhYy00MDRiLWEzOWItOTk2OTA1NTE5YTE0IiwidCI6IjZiMjk0YWIxLWVmODYtNDIwZS1hZDlkLWYzNzM0MzhlMjFkMiJ9';
-  },500);
-}
-
 function showErr(msg){
   document.getElementById('err-box').textContent=msg;
   document.getElementById('err-box').style.display='block';
   document.getElementById('result-card').style.display='none';
 }
-function hideErr(){
-  document.getElementById('err-box').style.display='none';
-}
+function hideErr(){document.getElementById('err-box').style.display='none';}
 
 async function ask(){
   const q=document.getElementById('question').value.trim();
   if(!q)return;
   const key=q.toLowerCase();
-
-  if(CACHE[key]){
-    render(CACHE[key],q,true);
-    return;
-  }
+  if(CACHE[key]){render(CACHE[key],q,true);return;}
 
   document.getElementById('run-btn').disabled=true;
   document.getElementById('push-badge').classList.remove('show');
-  document.getElementById('pbi-status').textContent='Pushing data...';
+  document.getElementById('pbi-status').textContent='Pushing to Power BI...';
   document.getElementById('pbi-status').classList.add('show');
-  hideErr();
-  startFlow();
+  hideErr();startFlow();
 
   try{
     const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
@@ -255,16 +238,14 @@ async function ask(){
     stopFlow();
     if(json.error){showErr('⚠ '+json.error);document.getElementById('pbi-status').classList.remove('show');return;}
     if(!json.data||!json.data.length){showErr('⚠ No data returned. Try rephrasing.');document.getElementById('pbi-status').classList.remove('show');return;}
+
     CACHE[key]=json;
     document.getElementById('push-badge').classList.add('show');
-    document.getElementById('pbi-status').textContent='✓ Data pushed — refreshing...';
-    setTimeout(()=>reloadPBI(),5000);
-    setTimeout(()=>reloadPBI(),15000);
-    setTimeout(()=>{
-      document.getElementById('pbi-status').textContent='✓ Chart updated';
-      setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),3000);
-    },5500);
+    document.getElementById('pbi-status').textContent='✓ Chart pushed to Power BI!';
+    setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'), 4000);
+
     render(json,q,false);
+
   }catch(e){
     stopFlow();
     showErr('⚠ Cannot reach API. Make sure server is running.');
@@ -287,7 +268,6 @@ function render(json,q,fromCache){
     ?'<span class="tag-cached">CACHED</span>'
     :'<span class="tag-live">LIVE</span>';
 
-  // Update chart data only — no destroy, no recreate
   chart.data.labels=labels;
   chart.data.datasets[0].label=columns[1]||'Value';
   chart.data.datasets[0].data=values;
@@ -295,7 +275,6 @@ function render(json,q,fromCache){
   chart.data.datasets[0].borderColor=PAL.slice(0,values.length);
   chart.update('none');
 
-  // SQL highlight
   const kw={SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',LIMIT:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc'};
   let h=sql||'';
   Object.entries(kw).forEach(([k,c])=>{h=h.replace(new RegExp(`\\b${k}\\b`,'g'),`<span style="color:${c}">${k}</span>`);});
