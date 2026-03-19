@@ -90,7 +90,6 @@ iframe{flex:1;width:100%;border:none;display:block;}
 
 <div class="main-body">
 
-  <!-- LEFT — POWER BI STATIC EMBED — no reload tricks -->
   <div class="pbi-panel">
     <div class="pbi-header">
       <div class="pbi-title">
@@ -108,7 +107,6 @@ iframe{flex:1;width:100%;border:none;display:block;}
     </iframe>
   </div>
 
-  <!-- RIGHT — QUERY PANEL -->
   <div class="query-panel">
     <div class="qp-header">
       <div class="qp-title">AI Query Engine <span class="cache-badge">CACHE</span></div>
@@ -166,12 +164,13 @@ iframe{flex:1;width:100%;border:none;display:block;}
 </div>
 
 <script>
-const API   = 'https://softudeproject.onrender.com/query';
-const CACHE = {};
-const PAL   = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-const GC    = 'rgba(42,45,62,0.8)';
-const TC    = '#4a4d6a';
-const TT    = {
+const PBI_SRC = 'https://app.powerbi.com/reportEmbed?reportId=f4644695-c79c-484d-9c3f-dfe66ddf8c7e&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2';
+const API     = 'https://softudeproject.onrender.com/query';
+const CACHE   = {};
+const PAL     = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
+const GC      = 'rgba(42,45,62,0.8)';
+const TC      = '#4a4d6a';
+const TT      = {
   backgroundColor:'#1e2130',borderColor:'#2a2d3e',borderWidth:1,
   titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
   callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
@@ -213,6 +212,13 @@ function startFlow(){
 }
 function stopFlow(){clearInterval(flowTimer);}
 
+// Single clean reload — only once, after data confirmed pushed
+function reloadPBI(){
+  const fr = document.getElementById('pbi-frame');
+  fr.src = 'about:blank';
+  setTimeout(()=>{ fr.src = PBI_SRC; }, 500);
+}
+
 function showErr(msg){
   document.getElementById('err-box').textContent=msg;
   document.getElementById('err-box').style.display='block';
@@ -241,8 +247,14 @@ async function ask(){
 
     CACHE[key]=json;
     document.getElementById('push-badge').classList.add('show');
-    document.getElementById('pbi-status').textContent='✓ Chart pushed to Power BI!';
-    setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'), 4000);
+    document.getElementById('pbi-status').textContent='✓ Pushed! Refreshing Power BI...';
+
+    // Single reload at 6s — enough time for PBI to process pushed data
+    setTimeout(()=>{
+      reloadPBI();
+      document.getElementById('pbi-status').textContent='✓ Power BI updated!';
+      setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'), 3000);
+    }, 6000);
 
     render(json,q,false);
 
