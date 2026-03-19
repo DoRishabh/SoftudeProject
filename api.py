@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from yml_parser import load_schema
 from nl2sql_agent import generate_sql
 from snowflake_executor import run_query
-from pbi_auth import clear_pbi_rows, push_pbi_rows
+from pbi_auth import clear_pbi_rows, push_pbi_rows, get_pbi_token
 
 app = FastAPI(title="AI Q&A Tool")
 
@@ -24,6 +24,17 @@ app.add_middleware(
 @app.get("/")
 def serve_home():
     return FileResponse("index.html")
+
+# ── NEW: Power BI token endpoint for frontend SDK ──────────
+@app.get("/pbi-token")
+def pbi_token():
+    try:
+        token = get_pbi_token()
+        if not token:
+            return {"error": "Failed to fetch token"}
+        return {"token": token}
+    except Exception as e:
+        return {"error": str(e)}
 
 class QueryRequest(BaseModel):
     question: str
