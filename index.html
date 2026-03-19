@@ -65,9 +65,9 @@ iframe{flex:1;width:100%;border:none;display:block;}
 .tag-live{font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);}
 .tag-rows{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);}
 .result-body{padding:10px;}
-/* FIX — proper chart container */
-.chart-wrap{position:relative;width:100%;height:160px;}
-.chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+/* CHART FIX — fixed height container, no responsive resize loop */
+.chart-wrap{width:100%;height:160px;position:relative;overflow:hidden;}
+.chart-wrap canvas{display:block;}
 .sql-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;color:#6b8aff;white-space:pre-wrap;word-break:break-all;max-height:70px;overflow-y:auto;margin-top:8px;line-height:1.6;}
 .err-box{color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 12px;}
 ::-webkit-scrollbar{width:4px;height:4px;}
@@ -197,10 +197,10 @@ async function ask(){
   const key=q.toLowerCase();
   const box=document.getElementById('result');
 
+  // Cache hit — no API call, no PBI reload
   if(CACHE[key]){
     if(chartInst){chartInst.destroy();chartInst=null;}
     render(CACHE[key],q,true);
-    reloadPBI();
     return;
   }
 
@@ -253,7 +253,7 @@ function render(json,q,fromCache){
   const labels=sliced.map(r=>{const v=String(r[columns[0]]);return v.length>16?v.substring(0,14)+'…':v;});
   const values=sliced.map(r=>parseFloat(r[columns[1]])||0);
 
-  // Destroy chart BEFORE changing DOM
+  // Destroy BEFORE touching DOM
   if(chartInst){chartInst.destroy();chartInst=null;}
 
   // SQL highlight
@@ -271,35 +271,32 @@ function render(json,q,fromCache){
         </div>
       </div>
       <div class="result-body">
-        <div class="chart-wrap"><canvas id="res-chart"></canvas></div>
+        <div class="chart-wrap"><canvas id="res-chart" width="380" height="160"></canvas></div>
         <div class="sql-box">${h}</div>
       </div>
     </div>`;
 
-  // Use requestAnimationFrame so DOM is ready before chart renders
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      const ctx=document.getElementById('res-chart');
-      if(!ctx)return;
-      chartInst=new Chart(ctx,{
-        type:'bar',
-        data:{labels,datasets:[{label:columns[1]||'Value',data:values,
-          backgroundColor:PAL.slice(0,values.length).map(c=>c+'bb'),
-          borderColor:PAL.slice(0,values.length),borderWidth:1.5,borderRadius:4
-        }]},
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          animation:{duration:400},
-          plugins:{legend:{display:false},tooltip:TT},
-          scales:{
-            x:{ticks:{color:TC,font:{size:9},maxRotation:35},grid:{color:GC},border:{color:'#2a2d3e'}},
-            y:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
-          }
+  // Render chart with fixed dimensions — no responsive resize loop
+  setTimeout(()=>{
+    const ctx=document.getElementById('res-chart');
+    if(!ctx)return;
+    chartInst=new Chart(ctx,{
+      type:'bar',
+      data:{labels,datasets:[{label:columns[1]||'Value',data:values,
+        backgroundColor:PAL.slice(0,values.length).map(c=>c+'bb'),
+        borderColor:PAL.slice(0,values.length),borderWidth:1.5,borderRadius:4
+      }]},
+      options:{
+        responsive:false,
+        animation:false,
+        plugins:{legend:{display:false},tooltip:TT},
+        scales:{
+          x:{ticks:{color:TC,font:{size:9},maxRotation:35},grid:{color:GC},border:{color:'#2a2d3e'}},
+          y:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
         }
-      });
+      }
     });
-  });
+  },50);
 }
 
 document.getElementById('question').addEventListener('keydown',e=>{
