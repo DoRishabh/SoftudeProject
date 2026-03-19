@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
@@ -9,7 +10,6 @@ def get_pbi_token():
     client_secret = os.getenv("AZURE_CLIENT_SECRET")
     username      = os.getenv("PBI_USERNAME")
     password      = os.getenv("PBI_PASSWORD")
-
     url  = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
     data = {
         "grant_type":    "password",
@@ -35,6 +35,8 @@ def clear_pbi_rows():
     headers    = {"Authorization": f"Bearer {token}"}
     resp       = requests.delete(url, headers=headers, timeout=10)
     print(f"PBI clear: {resp.status_code} {resp.text[:200]}")
+    # Wait for DELETE to fully process before pushing new data
+    time.sleep(3)
 
 def push_pbi_rows(rows: list):
     token = get_pbi_token()
