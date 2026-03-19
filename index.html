@@ -26,11 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .pbi-push-badge{font-family:'Space Mono',monospace;font-size:9px;padding:3px 10px;border-radius:3px;background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);color:var(--lime);display:none;}
 .pbi-push-badge.show{display:inline-block;}
-
-/* LAYOUT — side by side */
 .main-body{flex:1;display:flex;overflow:hidden;}
-
-/* LEFT — Power BI */
 .pbi-panel{flex:1;display:flex;flex-direction:column;border-right:2px solid var(--border2);}
 .pbi-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;}
 .pbi-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;}
@@ -39,10 +35,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 .pbi-status.show{display:inline-block;}
 .open-btn{background:var(--cyan);color:#000;padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;}
 iframe{flex:1;width:100%;border:none;display:block;}
-
-/* RIGHT — Query + Chart */
 .query-panel{width:420px;flex-shrink:0;display:flex;flex-direction:column;background:var(--panel);overflow:hidden;}
-.qp-header{padding:10px 16px;border-bottom:1px solid var(--border);background:var(--card2);}
+.qp-header{padding:10px 16px;border-bottom:1px solid var(--border);background:var(--card2);flex-shrink:0;}
 .qp-title{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;display:flex;align-items:center;gap:8px;}
 .cache-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--purple);background:rgba(124,77,255,0.1);border:1px solid rgba(124,77,255,0.2);padding:2px 7px;border-radius:3px;}
 .qp-body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
@@ -53,20 +47,16 @@ iframe{flex:1;width:100%;border:none;display:block;}
 .run-btn{background:var(--cyan);color:#000;border:none;padding:9px 18px;font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;white-space:nowrap;}
 .run-btn:hover{box-shadow:0 0 16px rgba(0,212,255,0.35);}
 .run-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.quick-label{font-size:10px;color:var(--dimmer);font-family:'Space Mono',monospace;letter-spacing:1px;margin-bottom:6px;}
 .quick-btns{display:flex;gap:5px;flex-wrap:wrap;}
 .qbtn{background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
 .qbtn:hover{color:var(--text);border-color:var(--border2);}
-
-/* FLOW INDICATOR */
-.flow-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);line-height:1.8;display:none;}
+.flow-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;line-height:2;display:none;}
 .flow-box.show{display:block;}
-.flow-step{display:flex;align-items:center;gap:8px;}
 .flow-step.done{color:var(--lime);}
 .flow-step.active{color:var(--cyan);animation:blink 1s infinite;}
 .flow-step.pending{color:var(--dimmer);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
-
-/* RESULT */
 .result-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
 .result-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card2);border-bottom:1px solid var(--border);}
 .result-q{font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
@@ -75,9 +65,11 @@ iframe{flex:1;width:100%;border:none;display:block;}
 .tag-live{font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);}
 .tag-rows{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);}
 .result-body{padding:10px;}
+/* FIX — proper chart container */
+.chart-wrap{position:relative;width:100%;height:160px;}
+.chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important;}
+.sql-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;color:#6b8aff;white-space:pre-wrap;word-break:break-all;max-height:70px;overflow-y:auto;margin-top:8px;line-height:1.6;}
 .err-box{color:#ff80aa;font-family:'Space Mono',monospace;font-size:11px;background:rgba(255,64,129,0.05);border:1px solid rgba(255,64,129,0.3);border-radius:6px;padding:10px 12px;}
-.sql-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;font-family:'Space Mono',monospace;font-size:10px;color:#6b8aff;white-space:pre-wrap;word-break:break-all;max-height:80px;overflow-y:auto;margin-top:8px;}
-
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
@@ -86,7 +78,6 @@ iframe{flex:1;width:100%;border:none;display:block;}
 </head>
 <body>
 
-<!-- NAV -->
 <div class="topnav">
   <div class="logo">
     <div class="logo-icon">R</div>
@@ -98,10 +89,8 @@ iframe{flex:1;width:100%;border:none;display:block;}
   </div>
 </div>
 
-<!-- MAIN BODY -->
 <div class="main-body">
 
-  <!-- LEFT — POWER BI REPORT -->
   <div class="pbi-panel">
     <div class="pbi-header">
       <div class="pbi-title">
@@ -119,29 +108,21 @@ iframe{flex:1;width:100%;border:none;display:block;}
     </iframe>
   </div>
 
-  <!-- RIGHT — AI QUERY PANEL -->
   <div class="query-panel">
     <div class="qp-header">
-      <div class="qp-title">
-        AI Query Engine
-        <span class="cache-badge">CACHE</span>
-      </div>
+      <div class="qp-title">AI Query Engine <span class="cache-badge">CACHE</span></div>
     </div>
     <div class="qp-body">
 
-      <!-- Input -->
-      <div>
-        <div class="query-row">
-          <input class="query-input" id="question" type="text"
-            placeholder="Ask a business question..."
-            onkeydown="if(event.key==='Enter') ask()"/>
-          <button class="run-btn" id="run-btn" onclick="ask()">▶ RUN</button>
-        </div>
+      <div class="query-row">
+        <input class="query-input" id="question" type="text"
+          placeholder="Ask a business question..."
+          onkeydown="if(event.key==='Enter') ask()"/>
+        <button class="run-btn" id="run-btn" onclick="ask()">▶ RUN</button>
       </div>
 
-      <!-- Quick buttons -->
       <div>
-        <div style="font-size:10px;color:var(--dimmer);font-family:'Space Mono',monospace;margin-bottom:6px;letter-spacing:1px;">QUICK QUERIES</div>
+        <div class="quick-label">QUICK QUERIES</div>
         <div class="quick-btns">
           <button class="qbtn" onclick="quick('Top 10 products by total sales amount')">Top products</button>
           <button class="qbtn" onclick="quick('Total sales by territory region')">By territory</button>
@@ -152,7 +133,6 @@ iframe{flex:1;width:100%;border:none;display:block;}
         </div>
       </div>
 
-      <!-- Flow indicator -->
       <div class="flow-box" id="flow-box">
         <div class="flow-step" id="f1">▸ Parsing question</div>
         <div class="flow-step" id="f2">▸ Generating SQL via Groq</div>
@@ -161,7 +141,6 @@ iframe{flex:1;width:100%;border:none;display:block;}
         <div class="flow-step" id="f5">▸ Rendering chart</div>
       </div>
 
-      <!-- Result -->
       <div id="result"></div>
 
     </div>
@@ -170,173 +149,162 @@ iframe{flex:1;width:100%;border:none;display:block;}
 </div>
 
 <script>
-const API   = 'https://softudeproject.onrender.com/query';
-const CACHE = {};
-const PAL   = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-const GC    = 'rgba(42,45,62,0.8)';
-const TC    = '#4a4d6a';
-const TT    = {
+const API  = 'https://softudeproject.onrender.com/query';
+const CACHE= {};
+const PAL  = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
+const GC   = 'rgba(42,45,62,0.8)';
+const TC   = '#4a4d6a';
+const TT   = {
   backgroundColor:'#1e2130',borderColor:'#2a2d3e',borderWidth:1,
   titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
-  callbacks:{ label: ctx => ' ' + fmtN(ctx.parsed.y !== undefined ? ctx.parsed.y : ctx.parsed) }
+  callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
 };
-let chartInst = null;
+let chartInst=null;
 
-function fmtN(n) {
-  n = parseFloat(n) || 0;
-  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
-  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+function fmtN(n){
+  n=parseFloat(n)||0;
+  if(n>=1e6)return(n/1e6).toFixed(1)+'M';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'K';
   return n.toLocaleString();
 }
 
-function quick(q) {
-  document.getElementById('question').value = q;
-  ask();
-}
+function quick(q){document.getElementById('question').value=q;ask();}
 
-// ── FLOW STEPS ────────────────────────────────────────────
-let flowTimer = null;
-function startFlow() {
-  const box = document.getElementById('flow-box');
-  box.classList.add('show');
-  ['f1','f2','f3','f4','f5'].forEach(id => {
-    document.getElementById(id).className = 'flow-step pending';
-  });
-  let i = 1;
-  document.getElementById('f1').className = 'flow-step active';
-  flowTimer = setInterval(() => {
-    if (i <= 5) document.getElementById('f'+i).className = 'flow-step done';
+let flowTimer=null;
+function startFlow(){
+  document.getElementById('flow-box').classList.add('show');
+  ['f1','f2','f3','f4','f5'].forEach(id=>document.getElementById(id).className='flow-step pending');
+  let i=1;
+  document.getElementById('f1').className='flow-step active';
+  flowTimer=setInterval(()=>{
+    if(i<=5)document.getElementById('f'+i).className='flow-step done';
     i++;
-    if (i <= 5) document.getElementById('f'+i).className = 'flow-step active';
+    if(i<=5)document.getElementById('f'+i).className='flow-step active';
     else clearInterval(flowTimer);
-  }, 700);
+  },700);
 }
-function stopFlow() { clearInterval(flowTimer); }
+function stopFlow(){clearInterval(flowTimer);}
 
-// ── MAIN QUERY ────────────────────────────────────────────
-async function ask() {
-  const q = document.getElementById('question').value.trim();
-  if (!q) return;
+function reloadPBI(){
+  const fr=document.getElementById('pbi-frame');
+  const s=fr.src;fr.src='';
+  setTimeout(()=>{fr.src=s;},200);
+}
 
-  const key = q.toLowerCase();
-  const box = document.getElementById('result');
+async function ask(){
+  const q=document.getElementById('question').value.trim();
+  if(!q)return;
+  const key=q.toLowerCase();
+  const box=document.getElementById('result');
 
-  // Cache hit — no API call
-  if (CACHE[key]) {
-    render(CACHE[key], q, true);
-    // Still reload PBI iframe to show cached data
+  if(CACHE[key]){
+    if(chartInst){chartInst.destroy();chartInst=null;}
+    render(CACHE[key],q,true);
     reloadPBI();
     return;
   }
 
-  document.getElementById('run-btn').disabled = true;
+  document.getElementById('run-btn').disabled=true;
   document.getElementById('push-badge').classList.remove('show');
-  document.getElementById('pbi-status').textContent = 'Pushing data...';
+  document.getElementById('pbi-status').textContent='Pushing data...';
   document.getElementById('pbi-status').classList.add('show');
   startFlow();
-  box.innerHTML = '';
+  box.innerHTML='';
 
-  try {
-    const res  = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q })
-    });
-    const json = await res.json();
+  try{
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    const json=await res.json();
     stopFlow();
 
-    if (json.error) {
-      box.innerHTML = `<div class="err-box">⚠ ${json.error}</div>`;
+    if(json.error){
+      box.innerHTML=`<div class="err-box">⚠ ${json.error}</div>`;
       document.getElementById('pbi-status').classList.remove('show');
       return;
     }
-    if (!json.data || !json.data.length) {
-      box.innerHTML = `<div class="err-box">⚠ No data returned. Try rephrasing.</div>`;
+    if(!json.data||!json.data.length){
+      box.innerHTML=`<div class="err-box">⚠ No data returned. Try rephrasing.</div>`;
       document.getElementById('pbi-status').classList.remove('show');
       return;
     }
 
-    CACHE[key] = json;
-
-    // Show push badge
+    CACHE[key]=json;
     document.getElementById('push-badge').classList.add('show');
-    document.getElementById('pbi-status').textContent = '✓ Data pushed — refreshing...';
+    document.getElementById('pbi-status').textContent='✓ Data pushed — refreshing...';
+    setTimeout(()=>reloadPBI(),2500);
+    setTimeout(()=>{
+      document.getElementById('pbi-status').textContent='✓ Chart updated';
+      setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),3000);
+    },5000);
 
-    // Reload Power BI iframe after short delay to show new data
-    setTimeout(() => reloadPBI(), 2000);
-    setTimeout(() => {
-      document.getElementById('pbi-status').textContent = '✓ Chart updated';
-      setTimeout(() => document.getElementById('pbi-status').classList.remove('show'), 3000);
-    }, 4000);
+    render(json,q,false);
 
-    render(json, q, false);
-
-  } catch(e) {
+  }catch(e){
     stopFlow();
-    box.innerHTML = `<div class="err-box">⚠ Cannot reach API. Make sure server is running.</div>`;
+    box.innerHTML=`<div class="err-box">⚠ Cannot reach API. Make sure server is running.</div>`;
     document.getElementById('pbi-status').classList.remove('show');
-  } finally {
-    document.getElementById('run-btn').disabled = false;
+  }finally{
+    document.getElementById('run-btn').disabled=false;
   }
 }
 
-function reloadPBI() {
-  const frame = document.getElementById('pbi-frame');
-  const src   = frame.src;
-  frame.src   = '';
-  setTimeout(() => { frame.src = src; }, 100);
-}
+function render(json,q,fromCache){
+  const{columns,data,sql}=json;
+  const sliced=data.slice(0,10);
+  const labels=sliced.map(r=>{const v=String(r[columns[0]]);return v.length>16?v.substring(0,14)+'…':v;});
+  const values=sliced.map(r=>parseFloat(r[columns[1]])||0);
 
-// ── RENDER CHART ──────────────────────────────────────────
-function render(json, q, fromCache) {
-  const { columns, data, sql } = json;
-  const sliced = data.slice(0, 10);
-  const labels = sliced.map(r => { const v = String(r[columns[0]]); return v.length > 18 ? v.substring(0,16)+'…' : v; });
-  const values = sliced.map(r => parseFloat(r[columns[1]]) || 0);
+  // Destroy chart BEFORE changing DOM
+  if(chartInst){chartInst.destroy();chartInst=null;}
 
-  document.getElementById('result').innerHTML = `
+  // SQL highlight
+  const kw={SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',LIMIT:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc'};
+  let h=sql||'';
+  Object.entries(kw).forEach(([k,c])=>{h=h.replace(new RegExp(`\\b${k}\\b`,'g'),`<span style="color:${c}">${k}</span>`);});
+
+  document.getElementById('result').innerHTML=`
     <div class="result-card">
       <div class="result-header">
         <span class="result-q">${q}</span>
         <div class="result-meta">
-          ${fromCache
-            ? '<span class="tag-cached">CACHED</span>'
-            : '<span class="tag-live">LIVE</span>'}
+          ${fromCache?'<span class="tag-cached">CACHED</span>':'<span class="tag-live">LIVE</span>'}
           <span class="tag-rows">${sliced.length} rows</span>
         </div>
       </div>
       <div class="result-body">
-        <canvas id="res-chart" height="160"></canvas>
-        <div class="sql-box" id="sql-box"></div>
+        <div class="chart-wrap"><canvas id="res-chart"></canvas></div>
+        <div class="sql-box">${h}</div>
       </div>
     </div>`;
 
-  // Highlight SQL
-  const kw = {SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',LIMIT:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc'};
-  let h = sql || '';
-  Object.entries(kw).forEach(([k,c]) => { h = h.replace(new RegExp(`\\b${k}\\b`,'g'), `<span style="color:${c}">${k}</span>`); });
-  document.getElementById('sql-box').innerHTML = h;
-
-  setTimeout(() => {
-    const ctx = document.getElementById('res-chart');
-    if (!ctx) return;
-    if (chartInst) chartInst.destroy();
-    chartInst = new Chart(ctx, {
-      type: 'bar',
-      data: { labels, datasets: [{ label: columns[1]||'Value', data: values,
-        backgroundColor: PAL.slice(0,values.length).map(c=>c+'bb'),
-        borderColor: PAL.slice(0,values.length), borderWidth:1.5, borderRadius:4
-      }]},
-      options: { responsive:true, maintainAspectRatio:false, animation:{duration:400},
-        plugins:{ legend:{display:false}, tooltip:TT },
-        scales:{
-          x:{ticks:{color:TC,font:{size:10},maxRotation:30},grid:{color:GC},border:{color:'#2a2d3e'}},
-          y:{ticks:{color:TC,font:{family:'Space Mono',size:10},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
+  // Use requestAnimationFrame so DOM is ready before chart renders
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const ctx=document.getElementById('res-chart');
+      if(!ctx)return;
+      chartInst=new Chart(ctx,{
+        type:'bar',
+        data:{labels,datasets:[{label:columns[1]||'Value',data:values,
+          backgroundColor:PAL.slice(0,values.length).map(c=>c+'bb'),
+          borderColor:PAL.slice(0,values.length),borderWidth:1.5,borderRadius:4
+        }]},
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          animation:{duration:400},
+          plugins:{legend:{display:false},tooltip:TT},
+          scales:{
+            x:{ticks:{color:TC,font:{size:9},maxRotation:35},grid:{color:GC},border:{color:'#2a2d3e'}},
+            y:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
+          }
         }
-      }
+      });
     });
-  }, 50);
+  });
 }
+
+document.getElementById('question').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask();}
+});
 </script>
 </body>
 </html>
