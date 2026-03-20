@@ -21,6 +21,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+REPORT_ID = "94149234-b1d8-41e0-9832-ca338e441e23"
+GROUP_ID  = "f19c474c-d2d1-4f91-853d-a5839a682e30"
+
 @app.get("/")
 def serve_home():
     return FileResponse("index.html")
@@ -41,17 +44,20 @@ def pbi_embed_token():
         access_token = get_pbi_token()
         if not access_token:
             return {"error": "No access token"}
-        report_id = "f4644695-c79c-484d-9c3f-dfe66ddf8c7e"
-        url       = f"https://api.powerbi.com/v1.0/myorg/reports/{report_id}/GenerateToken"
-        headers   = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
-        body      = {"accessLevel": "view"}
-        resp      = requests.post(url, headers=headers, json=body)
+        url     = f"https://api.powerbi.com/v1.0/myorg/groups/{GROUP_ID}/reports/{REPORT_ID}/GenerateToken"
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        body    = {"accessLevel": "Edit"}
+        resp    = requests.post(url, headers=headers, json=body)
         print(f"Embed token: {resp.status_code} {resp.text[:200]}")
-        data      = resp.json()
+        data    = resp.json()
+        token   = data.get("token")
+        if not token:
+            print(f"Embed token failed: {data}")
+            return {"error": str(data)}
         return {
-            "token":     data.get("token"),
-            "report_id": report_id,
-            "embed_url": f"https://app.powerbi.com/reportEmbed?reportId={report_id}"
+            "token":     token,
+            "report_id": REPORT_ID,
+            "embed_url": f"https://app.powerbi.com/reportEmbed?reportId={REPORT_ID}&groupId={GROUP_ID}"
         }
     except Exception as e:
         return {"error": str(e)}
@@ -92,3 +98,8 @@ def query(req: QueryRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
+```
+
+Also update Render env:
+```
+PBI_DATASET_ID = e5736ac8-d6e7-4ed2-a61d-479ff5e50844
