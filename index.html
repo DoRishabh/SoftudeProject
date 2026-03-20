@@ -241,18 +241,18 @@ async function initPBI(){
     pbiService = window['powerbi'];
     const container = document.getElementById('pbi-container');
 
-    const models = pbiService.models;
+    
     const config  = {
       type:        'report',
       id:          json.report_id,
       embedUrl:    json.embed_url,
       accessToken: json.token,
-      tokenType:   models.TokenType.Embed,
+      tokenType:   1,
       pageName:    PAGE_NAME,
       settings:{
         navContentPaneEnabled: false,
         filterPaneEnabled:     false,
-        background:            models.BackgroundType.Transparent,
+        background:            2,
       }
     };
 
