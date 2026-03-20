@@ -98,8 +98,3 @@ def query(req: QueryRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
-```
-
-Also update Render env:
-```
-PBI_DATASET_ID = e5736ac8-d6e7-4ed2-a61d-479ff5e50844
