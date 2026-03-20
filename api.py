@@ -70,12 +70,13 @@ def push_to_powerbi(data: list, columns: list):
         if not data or len(columns) < 2:
             return
         clear_pbi_rows()
+        # Push all rows — no slicing, respect query limit
         rows = [
             {
                 "label": str(row[columns[0]]),
                 "value": float(row[columns[1]]) if row[columns[1]] is not None else 0
             }
-            for row in data[:10]
+            for row in data
         ]
         push_pbi_rows(rows)
     except Exception as e:
