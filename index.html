@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 .pbi-badge{font-family:'Space Mono',monospace;font-size:9px;color:var(--dim);background:var(--panel);border:1px solid var(--border);padding:2px 8px;border-radius:3px;}
 .pbi-status{font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);color:var(--cyan);display:none;}
 .pbi-status.show{display:inline-block;}
-.visual-badge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px;background:rgba(124,77,255,0.15);border:1px solid rgba(124,77,255,0.3);color:var(--purple);display:none;}
+.visual-badge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px;background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);color:var(--lime);display:none;}
 .visual-badge.show{display:inline-block;}
 .open-btn{background:var(--cyan);color:#000;padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;}
 #pbi-container{flex:1;width:100%;background:#fff;}
@@ -54,9 +54,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 .quick-btns{display:flex;gap:5px;flex-wrap:wrap;}
 .qbtn{background:var(--card);border:1px solid var(--border);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:3px;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
 .qbtn:hover{color:var(--text);border-color:var(--border2);}
-.visual-btns{display:flex;gap:5px;flex-wrap:wrap;}
-.vbtn{background:var(--card);border:1px solid var(--border);color:var(--purple);padding:4px 10px;font-size:10px;border-radius:3px;cursor:pointer;font-family:'Space Mono',monospace;transition:all 0.2s;}
-.vbtn:hover{color:var(--text);border-color:var(--purple);}
 .flow-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'Space Mono',monospace;font-size:10px;line-height:2;display:none;}
 .flow-box.show{display:block;}
 .flow-step.done{color:var(--lime);}
@@ -101,10 +98,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
       <div class="pbi-title">
         AI Query Results — Power BI
         <span class="pbi-badge">LIVE SDK</span>
-        <span class="pbi-status" id="pbi-status">Loading...</span>
+        <span class="pbi-status" id="pbi-status">Loading report...</span>
         <span class="visual-badge" id="visual-badge">BAR</span>
       </div>
-      <a class="open-btn" href="https://app.powerbi.com/groups/me/reports/f4644695-c79c-484d-9c3f-dfe66ddf8c7e/49e297931bf12ed2d54f" target="_blank">Open Full ↗</a>
+      <a class="open-btn" href="https://app.powerbi.com/groups/f19c474c-d2d1-4f91-853d-a5839a682e30/reports/94149234-b1d8-41e0-9832-ca338e441e23" target="_blank">Open Full ↗</a>
     </div>
     <div id="pbi-container"></div>
   </div>
@@ -116,8 +113,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
     <div class="qp-body">
 
       <div class="query-row">
-        <input class="query-input" id="question" type="text"
-          placeholder="e.g. top 10 products bar chart..."
+        <input class="query-input" id="question" name="question" type="text"
+          placeholder="e.g. top products pie chart..."
           onkeydown="if(event.key==='Enter') ask()"/>
         <button class="run-btn" id="run-btn" onclick="ask()">▶ RUN</button>
       </div>
@@ -125,28 +122,12 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
       <div>
         <div class="quick-label">QUICK QUERIES</div>
         <div class="quick-btns">
-          <button class="qbtn" onclick="quick('Top 10 products by total sales amount bar chart')">Top products</button>
+          <button class="qbtn" onclick="quick('Top 10 products by total sales bar chart')">Top products</button>
           <button class="qbtn" onclick="quick('Total sales by territory region bar chart')">By territory</button>
           <button class="qbtn" onclick="quick('Top 10 customers by total sales pie chart')">Top customers</button>
           <button class="qbtn" onclick="quick('Total sales by product category donut chart')">By category</button>
           <button class="qbtn" onclick="quick('Sales amount by country bar chart')">By country</button>
           <button class="qbtn" onclick="quick('Total sales by subcategory line chart')">By subcategory</button>
-        </div>
-      </div>
-
-      <div>
-        <div class="quick-label">VISUAL TYPES</div>
-        <div class="visual-btns">
-          <button class="vbtn" onclick="changeVisual('clusteredBarChart')">Bar</button>
-          <button class="vbtn" onclick="changeVisual('clusteredColumnChart')">Column</button>
-          <button class="vbtn" onclick="changeVisual('pieChart')">Pie</button>
-          <button class="vbtn" onclick="changeVisual('donutChart')">Donut</button>
-          <button class="vbtn" onclick="changeVisual('lineChart')">Line</button>
-          <button class="vbtn" onclick="changeVisual('areaChart')">Area</button>
-          <button class="vbtn" onclick="changeVisual('scatterChart')">Scatter</button>
-          <button class="vbtn" onclick="changeVisual('tableEx')">Table</button>
-          <button class="vbtn" onclick="changeVisual('treemap')">Treemap</button>
-          <button class="vbtn" onclick="changeVisual('funnel')">Funnel</button>
         </div>
       </div>
 
@@ -182,21 +163,19 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 </div>
 
 <script>
-const API        = 'https://softudeproject.onrender.com/query';
-const TOKEN_URL  = 'https://softudeproject.onrender.com/pbi-token';
-const REPORT_ID  = 'f4644695-c79c-484d-9c3f-dfe66ddf8c7e';
-const PAGE_NAME  = '49e297931bf12ed2d54f';
-const CACHE      = {};
-const PAL        = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff'];
-const GC         = 'rgba(42,45,62,0.8)';
-const TC         = '#4a4d6a';
-const TT         = {
+const API       = 'https://softudeproject.onrender.com/query';
+const EMBED_URL = 'https://softudeproject.onrender.com/pbi-embed-token';
+const PAGE_NAME = '49e297931bf12ed2d54f';
+const CACHE     = {};
+const PAL       = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
+const GC        = 'rgba(42,45,62,0.8)';
+const TC        = '#4a4d6a';
+const TT        = {
   backgroundColor:'#1e2130',borderColor:'#2a2d3e',borderWidth:1,
   titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
   callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
 };
 
-// Chart.js instance
 const chart = new Chart(document.getElementById('chart-canvas-area').getContext('2d'),{
   type:'bar',
   data:{labels:[],datasets:[{label:'Value',data:[],backgroundColor:[],borderColor:[],borderWidth:1.5,borderRadius:4}]},
@@ -210,137 +189,120 @@ const chart = new Chart(document.getElementById('chart-canvas-area').getContext(
   }
 });
 
-// Power BI SDK variables
-let pbiReport   = null;
-let pbiVisual   = null;
-let currentType = 'clusteredBarChart';
+// Power BI SDK
+let pbiReport  = null;
+let pbiVisual  = null;
+let pbiService = null;
 
-// Visual type keyword map
+// Visual type map
 const VISUAL_MAP = {
-  'bar chart':       'clusteredBarChart',
-  'bar':             'clusteredBarChart',
-  'column chart':    'clusteredColumnChart',
-  'column':          'clusteredColumnChart',
-  'pie chart':       'pieChart',
-  'pie':             'pieChart',
-  'donut chart':     'donutChart',
-  'donut':           'donutChart',
-  'doughnut':        'donutChart',
-  'line chart':      'lineChart',
-  'line':            'lineChart',
-  'area chart':      'areaChart',
-  'area':            'areaChart',
-  'scatter plot':    'scatterChart',
-  'scatter chart':   'scatterChart',
-  'scatter':         'scatterChart',
-  'table':           'tableEx',
-  'treemap':         'treemap',
-  'tree map':        'treemap',
-  'funnel':          'funnel',
-  'funnel chart':    'funnel',
-  'waterfall':       'waterfallChart',
-  'waterfall chart': 'waterfallChart',
-  'ribbon chart':    'ribbonChart',
-  'ribbon':          'ribbonChart',
+  'bar chart':'clusteredBarChart','bar':'clusteredBarChart',
+  'column chart':'clusteredColumnChart','column':'clusteredColumnChart',
+  'pie chart':'pieChart','pie':'pieChart',
+  'donut chart':'donutChart','donut':'donutChart','doughnut':'donutChart',
+  'line chart':'lineChart','line':'lineChart',
+  'area chart':'areaChart','area':'areaChart',
+  'scatter plot':'scatterChart','scatter chart':'scatterChart','scatter':'scatterChart',
+  'table':'tableEx',
+  'treemap':'treemap','tree map':'treemap',
+  'funnel chart':'funnel','funnel':'funnel',
+  'waterfall chart':'waterfallChart','waterfall':'waterfallChart',
+  'ribbon chart':'ribbonChart','ribbon':'ribbonChart',
 };
 
 const VISUAL_LABELS = {
-  'clusteredBarChart':   'BAR',
-  'clusteredColumnChart':'COLUMN',
-  'pieChart':            'PIE',
-  'donutChart':          'DONUT',
-  'lineChart':           'LINE',
-  'areaChart':           'AREA',
-  'scatterChart':        'SCATTER',
-  'tableEx':             'TABLE',
-  'treemap':             'TREEMAP',
-  'funnel':              'FUNNEL',
-  'waterfallChart':      'WATERFALL',
-  'ribbonChart':         'RIBBON',
+  'clusteredBarChart':'BAR','clusteredColumnChart':'COLUMN',
+  'pieChart':'PIE','donutChart':'DONUT','lineChart':'LINE',
+  'areaChart':'AREA','scatterChart':'SCATTER','tableEx':'TABLE',
+  'treemap':'TREEMAP','funnel':'FUNNEL','waterfallChart':'WATERFALL',
+  'ribbonChart':'RIBBON',
 };
 
-function detectVisualType(question) {
-  const q = question.toLowerCase();
-  for (const [keyword, type] of Object.entries(VISUAL_MAP)) {
-    if (q.includes(keyword)) return type;
+function detectVisualType(q){
+  q = q.toLowerCase();
+  for(const [kw,type] of Object.entries(VISUAL_MAP)){
+    if(q.includes(kw)) return type;
   }
-  return 'clusteredBarChart'; // default
+  return 'clusteredBarChart';
 }
 
-// Initialize Power BI SDK embed
-async function initPBI() {
-  try {
-    document.getElementById('pbi-status').textContent = 'Fetching token...';
+async function initPBI(){
+  try{
+    document.getElementById('pbi-status').textContent='Fetching embed token...';
     document.getElementById('pbi-status').classList.add('show');
 
-    const res   = await fetch(TOKEN_URL);
-    const json  = await res.json();
-    if (json.error) throw new Error(json.error);
+    const res  = await fetch(EMBED_URL);
+    const json = await res.json();
 
-    const token = json.token;
-    const pbiService = window['powerbi'];
-    const container  = document.getElementById('pbi-container');
+    if(json.error){
+      throw new Error(json.error);
+    }
 
-    const config = {
-      type:          'report',
-      id:            REPORT_ID,
-      embedUrl:      `https://app.powerbi.com/reportEmbed?reportId=${REPORT_ID}&groupId=me`,
-      accessToken:   token,
-      tokenType:     pbiService.models.TokenType.Aad,
-      pageName:      PAGE_NAME,
-      settings: {
+    pbiService = window['powerbi'];
+    const container = document.getElementById('pbi-container');
+
+    const models = pbiService.models;
+    const config  = {
+      type:        'report',
+      id:          json.report_id,
+      embedUrl:    json.embed_url,
+      accessToken: json.token,
+      tokenType:   models.TokenType.Embed,
+      pageName:    PAGE_NAME,
+      settings:{
         navContentPaneEnabled: false,
         filterPaneEnabled:     false,
-        background:            pbiService.models.BackgroundType.Transparent,
+        background:            models.BackgroundType.Transparent,
       }
     };
 
     pbiReport = pbiService.embed(container, config);
 
-    pbiReport.on('loaded', async () => {
-      document.getElementById('pbi-status').textContent = '✓ Report loaded';
-      setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'), 2000);
+    pbiReport.on('loaded', async()=>{
+      console.log('PBI report loaded!');
+      document.getElementById('pbi-status').textContent='✓ Report ready';
+      setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),2000);
       await getVisual();
     });
 
-    pbiReport.on('error', (err) => {
-      console.error('PBI embed error:', err);
-      document.getElementById('pbi-status').textContent = 'SDK error — using iframe';
-      // Fallback to iframe
-      container.innerHTML = `<iframe style="width:100%;height:100%;border:none;" src="https://app.powerbi.com/reportEmbed?reportId=${REPORT_ID}&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2"></iframe>`;
+    pbiReport.on('error', async(err)=>{
+      console.error('PBI error:', err.detail);
+      document.getElementById('pbi-status').textContent='Loading...';
     });
 
-  } catch(e) {
+  }catch(e){
     console.error('PBI init error:', e);
-    document.getElementById('pbi-status').textContent = 'Auth error';
-    // Fallback to iframe
-    document.getElementById('pbi-container').innerHTML = `<iframe style="width:100%;height:100%;border:none;" src="https://app.powerbi.com/reportEmbed?reportId=${REPORT_ID}&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2"></iframe>`;
+    document.getElementById('pbi-status').textContent='SDK error';
+    // Fallback iframe
+    document.getElementById('pbi-container').innerHTML=`
+      <iframe style="width:100%;height:100%;border:none;"
+        src="https://app.powerbi.com/reportEmbed?reportId=94149234-b1d8-41e0-9832-ca338e441e23&groupId=f19c474c-d2d1-4f91-853d-a5839a682e30&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2">
+      </iframe>`;
   }
 }
 
-async function getVisual() {
-  try {
+async function getVisual(){
+  try{
     const pages   = await pbiReport.getPages();
-    const page    = pages.find(p => p.name === PAGE_NAME) || pages[0];
+    const page    = pages.find(p=>p.name===PAGE_NAME)||pages[0];
     const visuals = await page.getVisuals();
-    pbiVisual     = visuals.find(v => v.type !== 'slicer' && v.type !== 'textbox') || visuals[0];
-    console.log('Visual found:', pbiVisual?.type, pbiVisual?.name);
-  } catch(e) {
+    pbiVisual     = visuals.find(v=>v.type!=='slicer'&&v.type!=='textbox')||visuals[0];
+    console.log('Visual found:', pbiVisual?.type);
+  }catch(e){
     console.error('Get visual error:', e);
   }
 }
 
-async function changeVisual(type) {
-  if (!pbiVisual) { await getVisual(); }
-  if (!pbiVisual) return;
-  try {
+async function changeVisual(type){
+  if(!pbiVisual) await getVisual();
+  if(!pbiVisual) return;
+  try{
     await pbiVisual.changeType(type);
-    currentType = type;
-    const label = VISUAL_LABELS[type] || type.toUpperCase();
-    document.getElementById('visual-badge').textContent = label;
+    const label = VISUAL_LABELS[type]||type.toUpperCase();
+    document.getElementById('visual-badge').textContent=label;
     document.getElementById('visual-badge').classList.add('show');
     console.log('Visual changed to:', type);
-  } catch(e) {
+  }catch(e){
     console.error('Change visual error:', e);
   }
 }
@@ -376,12 +338,10 @@ function showErr(msg){
 function hideErr(){document.getElementById('err-box').style.display='none';}
 
 async function ask(){
-  const q   = document.getElementById('question').value.trim();
-  if (!q) return;
-  const key = q.toLowerCase();
-
-  // Detect visual type from query
-  const visualType = detectVisualType(q);
+  const q=document.getElementById('question').value.trim();
+  if(!q)return;
+  const key=q.toLowerCase();
+  const visualType=detectVisualType(q);
 
   if(CACHE[key]){
     render(CACHE[key],q,true);
@@ -396,20 +356,20 @@ async function ask(){
   hideErr();startFlow();
 
   try{
-    const res  = await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
-    const json = await res.json();
+    const res=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    const json=await res.json();
     stopFlow();
     if(json.error){showErr('⚠ '+json.error);document.getElementById('pbi-status').classList.remove('show');return;}
     if(!json.data||!json.data.length){showErr('⚠ No data returned. Try rephrasing.');document.getElementById('pbi-status').classList.remove('show');return;}
 
     CACHE[key]=json;
     document.getElementById('push-badge').classList.add('show');
-    document.getElementById('pbi-status').textContent='✓ Pushed! Changing visual...';
+    document.getElementById('pbi-status').textContent='✓ Pushed! Updating visual...';
 
-    // Change visual type and refresh report
+    // Change visual type + refresh report
     await changeVisual(visualType);
-    if(pbiReport) {
-      try { await pbiReport.refresh(); } catch(e){}
+    if(pbiReport){
+      try{ await pbiReport.refresh(); }catch(e){}
     }
 
     setTimeout(()=>{
@@ -458,8 +418,8 @@ document.getElementById('question').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask();}
 });
 
-// Init Power BI SDK on page load
-window.addEventListener('load', ()=>{ initPBI(); });
+// Init Power BI on page load
+window.addEventListener('load',()=>initPBI());
 </script>
 </body>
 </html>
