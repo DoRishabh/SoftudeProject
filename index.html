@@ -123,7 +123,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
         <div class="quick-label">QUICK QUERIES</div>
         <div class="quick-btns">
           <button class="qbtn" onclick="quick('Top 10 products by total sales bar chart')">Top products</button>
-          <button class="qbtn" onclick="quick('Total sales by territory region bar chart')">By territory</button>
+          <button class="qbtn" onclick="quick('Total sales by territory region column chart')">By territory</button>
           <button class="qbtn" onclick="quick('Top 10 customers by total sales pie chart')">Top customers</button>
           <button class="qbtn" onclick="quick('Total sales by product category donut chart')">By category</button>
           <button class="qbtn" onclick="quick('Sales amount by country bar chart')">By country</button>
@@ -136,7 +136,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
         <div class="flow-step" id="f2">▸ Generating SQL via Groq</div>
         <div class="flow-step" id="f3">▸ Querying Snowflake</div>
         <div class="flow-step" id="f4">▸ Pushing to Power BI</div>
-        <div class="flow-step" id="f5">▸ Updating visual type</div>
+        <div class="flow-step" id="f5">▸ Switching visual page</div>
       </div>
 
       <div class="result-card" id="result-card" style="display:none;">
@@ -165,7 +165,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 <script>
 const API       = 'https://softudeproject.onrender.com/query';
 const EMBED_URL = 'https://softudeproject.onrender.com/pbi-embed-token';
-const PAGE_NAME = '103d9261af9b145cb9ce';
 const CACHE     = {};
 const PAL       = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
 const GC        = 'rgba(42,45,62,0.8)';
@@ -175,6 +174,44 @@ const TT        = {
   titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
   callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
 };
+
+// Page map — keyword → Power BI page name
+const PAGE_MAP = {
+  'bar':     'ac78c10e92e85a47acf8',
+  'pie':     '2be3a07c554f964972ad',
+  'line':    '2da794ab6e4126704f57',
+  'column':  '725874e6204485717a53',
+  'area':    'c8e3dda9d88b04655e23',
+  'donut':   '9a60fe486e4c04b82f77',
+  'doughnut':'9a60fe486e4c04b82f77',
+  'scatter': '360bb97baa79c2ad2454',
+  'table':   'da986f381b26a2a60cdf',
+};
+
+const PAGE_LABELS = {
+  'ac78c10e92e85a47acf8': 'BAR',
+  '2be3a07c554f964972ad': 'PIE',
+  '2da794ab6e4126704f57': 'LINE',
+  '725874e6204485717a53': 'COLUMN',
+  'c8e3dda9d88b04655e23': 'AREA',
+  '9a60fe486e4c04b82f77': 'DONUT',
+  '360bb97baa79c2ad2454': 'SCATTER',
+  'da986f381b26a2a60cdf': 'TABLE',
+};
+
+const DEFAULT_PAGE = 'ac78c10e92e85a47acf8'; // Bar chart default
+
+function detectPage(q){
+  q = q.toLowerCase();
+  for(const [kw, page] of Object.entries(PAGE_MAP)){
+    if(q.includes(kw)) return page;
+  }
+  return DEFAULT_PAGE;
+}
+
+const models = {TokenType:{Embed:1},BackgroundType:{Transparent:2}};
+let pbiReport  = null;
+let pbiService = null;
 
 const chart = new Chart(document.getElementById('chart-canvas-area').getContext('2d'),{
   type:'bar',
@@ -189,44 +226,6 @@ const chart = new Chart(document.getElementById('chart-canvas-area').getContext(
   }
 });
 
-// Power BI SDK
-const models = {TokenType:{Embed:1},BackgroundType:{Transparent:2}};
-let pbiReport  = null;
-let pbiVisual  = null;
-let pbiService = null;
-
-// Visual type map
-const VISUAL_MAP = {
-  'bar chart':'clusteredBarChart','bar':'clusteredBarChart',
-  'column chart':'clusteredColumnChart','column':'clusteredColumnChart',
-  'pie chart':'pieChart','pie':'pieChart',
-  'donut chart':'donutChart','donut':'donutChart','doughnut':'donutChart',
-  'line chart':'lineChart','line':'lineChart',
-  'area chart':'areaChart','area':'areaChart',
-  'scatter plot':'scatterChart','scatter chart':'scatterChart','scatter':'scatterChart',
-  'table':'tableEx',
-  'treemap':'treemap','tree map':'treemap',
-  'funnel chart':'funnel','funnel':'funnel',
-  'waterfall chart':'waterfallChart','waterfall':'waterfallChart',
-  'ribbon chart':'ribbonChart','ribbon':'ribbonChart',
-};
-
-const VISUAL_LABELS = {
-  'clusteredBarChart':'BAR','clusteredColumnChart':'COLUMN',
-  'pieChart':'PIE','donutChart':'DONUT','lineChart':'LINE',
-  'areaChart':'AREA','scatterChart':'SCATTER','tableEx':'TABLE',
-  'treemap':'TREEMAP','funnel':'FUNNEL','waterfallChart':'WATERFALL',
-  'ribbonChart':'RIBBON',
-};
-
-function detectVisualType(q){
-  q = q.toLowerCase();
-  for(const [kw,type] of Object.entries(VISUAL_MAP)){
-    if(q.includes(kw)) return type;
-  }
-  return 'clusteredBarChart';
-}
-
 async function initPBI(){
   try{
     document.getElementById('pbi-status').textContent='Fetching embed token...';
@@ -234,26 +233,15 @@ async function initPBI(){
 
     const res  = await fetch(EMBED_URL);
     const json = await res.json();
+    console.log('Embed token response:', JSON.stringify(json).substring(0,80));
 
-    console.log('Embed token response:', JSON.stringify(json).substring(0,100));
+    if(json.error) throw new Error(json.error);
+    if(!json.token) throw new Error('No token');
 
-    if(json.error){
-      throw new Error(json.error);
-    }
-
-    if(!json.token){
-      throw new Error('No token returned');
-    }
-
-    // Wait for powerbi-client to load
-    if(typeof window.powerbi === 'undefined'){
-      throw new Error('powerbi-client not loaded');
-    }
+    if(typeof window.powerbi==='undefined') throw new Error('powerbi-client not loaded');
 
     pbiService = window.powerbi;
     const container = document.getElementById('pbi-container');
-
-    // Reset container
     pbiService.reset(container);
 
     const config = {
@@ -262,26 +250,23 @@ async function initPBI(){
       embedUrl:    json.embed_url,
       accessToken: json.token,
       tokenType:   models.TokenType.Embed,
-      pageName:    PAGE_NAME,
+      pageName:    DEFAULT_PAGE,
       settings:{
         navContentPaneEnabled: false,
         filterPaneEnabled:     false,
       }
     };
 
-    console.log('Embedding with config:', json.report_id, json.embed_url.substring(0,50));
     pbiReport = pbiService.embed(container, config);
 
-    pbiReport.on('loaded', async()=>{
-      console.log('PBI report loaded successfully!');
+    pbiReport.on('loaded', ()=>{
+      console.log('PBI report loaded!');
       document.getElementById('pbi-status').textContent='✓ Report ready';
       setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),2000);
-      await getVisual();
     });
 
-    pbiReport.on('error', async(err)=>{
-      console.error('PBI report error:', JSON.stringify(err.detail));
-      document.getElementById('pbi-status').textContent='Report error — check console';
+    pbiReport.on('error', (err)=>{
+      console.error('PBI error:', JSON.stringify(err.detail));
     });
 
   }catch(e){
@@ -294,29 +279,16 @@ async function initPBI(){
   }
 }
 
-async function getVisual(){
+async function switchPage(pageName){
+  if(!pbiReport) return;
   try{
-    const pages   = await pbiReport.getPages();
-    const page    = pages.find(p=>p.name===PAGE_NAME)||pages[0];
-    const visuals = await page.getVisuals();
-    pbiVisual     = visuals.find(v=>v.type!=='slicer'&&v.type!=='textbox')||visuals[0];
-    console.log('Visual found:', pbiVisual?.type);
-  }catch(e){
-    console.error('Get visual error:', e);
-  }
-}
-
-async function changeVisual(type){
-  if(!pbiVisual) await getVisual();
-  if(!pbiVisual) return;
-  try{
-    await pbiVisual.changeType(type);
-    const label = VISUAL_LABELS[type]||type.toUpperCase();
+    await pbiReport.setPage(pageName);
+    const label = PAGE_LABELS[pageName]||'CHART';
     document.getElementById('visual-badge').textContent=label;
     document.getElementById('visual-badge').classList.add('show');
-    console.log('Visual changed to:', type);
+    console.log('Switched to page:', pageName, label);
   }catch(e){
-    console.error('Change visual error:', e);
+    console.error('Switch page error:', e.message||e);
   }
 }
 
@@ -354,11 +326,11 @@ async function ask(){
   const q=document.getElementById('question').value.trim();
   if(!q)return;
   const key=q.toLowerCase();
-  const visualType=detectVisualType(q);
+  const pageName=detectPage(q);
 
   if(CACHE[key]){
     render(CACHE[key],q,true);
-    await changeVisual(visualType);
+    await switchPage(pageName);
     return;
   }
 
@@ -377,10 +349,10 @@ async function ask(){
 
     CACHE[key]=json;
     document.getElementById('push-badge').classList.add('show');
-    document.getElementById('pbi-status').textContent='✓ Pushed! Updating visual...';
+    document.getElementById('pbi-status').textContent='✓ Pushed! Switching visual...';
 
-    // Change visual type + refresh report
-    await changeVisual(visualType);
+    // Switch to correct page + refresh
+    await switchPage(pageName);
     if(pbiReport){
       try{ await pbiReport.refresh(); }catch(e){}
     }
@@ -401,11 +373,23 @@ async function ask(){
   }
 }
 
+function detectChartType(q){
+  q=q.toLowerCase();
+  if(q.includes('pie'))return 'pie';
+  if(q.includes('donut')||q.includes('doughnut'))return 'doughnut';
+  if(q.includes('line')||q.includes('area'))return 'line';
+  if(q.includes('scatter'))return 'scatter';
+  return 'bar';
+}
+
 function render(json,q,fromCache){
   const{columns,data,sql}=json;
   const sliced=data.slice(0,10);
   const labels=sliced.map(r=>{const v=String(r[columns[0]]);return v.length>16?v.substring(0,14)+'…':v;});
   const values=sliced.map(r=>parseFloat(r[columns[1]])||0);
+  const ctype=detectChartType(q);
+  const isRound=ctype==='pie'||ctype==='doughnut';
+  const isFill=q.toLowerCase().includes('area');
 
   document.getElementById('result-card').style.display='block';
   document.getElementById('result-q').textContent=q;
@@ -414,16 +398,20 @@ function render(json,q,fromCache){
     ?'<span class="tag-cached">CACHED</span>'
     :'<span class="tag-live">LIVE</span>';
 
+  chart.config.type=ctype;
   chart.data.labels=labels;
   chart.data.datasets[0].label=columns[1]||'Value';
   chart.data.datasets[0].data=values;
-  chart.data.datasets[0].backgroundColor=PAL.slice(0,values.length).map(c=>c+'bb');
+  chart.data.datasets[0].backgroundColor=isRound?PAL.slice(0,values.length).map(c=>c+'dd'):PAL.slice(0,values.length).map(c=>c+'bb');
   chart.data.datasets[0].borderColor=PAL.slice(0,values.length);
+  chart.data.datasets[0].fill=isFill;
+  chart.options.scales.x.display=!isRound;
+  chart.options.scales.y.display=!isRound;
   chart.update('none');
 
   const kw={SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',LIMIT:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc'};
   let h=sql||'';
-  Object.entries(kw).forEach(([k,c])=>{h=h.replace(new RegExp(`\\b${k}\\b`,'g'),`<span style="color:${c}">${k}</span>`);});
+  Object.entries(kw).forEach(([k,c])=>{h=h.replace(new RegExp(`\b${k}\b`,'g'),`<span style="color:${c}">${k}</span>`);});
   document.getElementById('sql-box').innerHTML=h;
 }
 
@@ -431,7 +419,6 @@ document.getElementById('question').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask();}
 });
 
-// Init Power BI on page load
 window.addEventListener('load',()=>initPBI());
 </script>
 </body>
