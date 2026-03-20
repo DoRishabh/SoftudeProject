@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-REPORT_ID = "94149234-b1d8-41e0-9832-ca338e441e23"
+REPORT_ID = "771ac7b8-a37d-4028-825d-8b9f189ed0c4"
 GROUP_ID  = "f19c474c-d2d1-4f91-853d-a5839a682e30"
 
 @app.get("/")
