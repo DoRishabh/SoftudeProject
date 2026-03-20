@@ -40,7 +40,7 @@ STRICT RULES:
    GROUP BY st.REGION
    ORDER BY TOTAL_SALES DESC
    LIMIT 100
-8. Always use LIMIT 100 regardless of what the question says — the frontend handles slicing
+8. If the question mentions a specific number like "top 5", "top 10", "top 3" use that number as the LIMIT. Otherwise default to LIMIT 10.
 9. When joining CUSTOMER always add: WHERE c.CUSTOMER_NAME IS NOT NULL AND sod.CUSTOMERKEY > 0
 10. NEVER explain anything. NEVER use markdown. Output ONLY the raw SQL starting with SELECT. If your response does not start with SELECT you have failed.
 11. If the question cannot be answered from the schema return exactly:
