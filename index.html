@@ -190,6 +190,7 @@ const chart = new Chart(document.getElementById('chart-canvas-area').getContext(
 });
 
 // Power BI SDK
+const models = {TokenType:{Embed:1},BackgroundType:{Transparent:2}};
 let pbiReport  = null;
 let pbiVisual  = null;
 let pbiService = null;
@@ -234,46 +235,58 @@ async function initPBI(){
     const res  = await fetch(EMBED_URL);
     const json = await res.json();
 
+    console.log('Embed token response:', JSON.stringify(json).substring(0,100));
+
     if(json.error){
       throw new Error(json.error);
     }
 
-    pbiService = window['powerbi'];
+    if(!json.token){
+      throw new Error('No token returned');
+    }
+
+    // Wait for powerbi-client to load
+    if(typeof window.powerbi === 'undefined'){
+      throw new Error('powerbi-client not loaded');
+    }
+
+    pbiService = window.powerbi;
     const container = document.getElementById('pbi-container');
 
-    
-    const config  = {
+    // Reset container
+    pbiService.reset(container);
+
+    const config = {
       type:        'report',
       id:          json.report_id,
       embedUrl:    json.embed_url,
       accessToken: json.token,
-      tokenType:   1,
+      tokenType:   models.TokenType.Embed,
       pageName:    PAGE_NAME,
       settings:{
         navContentPaneEnabled: false,
         filterPaneEnabled:     false,
-        background:            2,
       }
     };
 
+    console.log('Embedding with config:', json.report_id, json.embed_url.substring(0,50));
     pbiReport = pbiService.embed(container, config);
 
     pbiReport.on('loaded', async()=>{
-      console.log('PBI report loaded!');
+      console.log('PBI report loaded successfully!');
       document.getElementById('pbi-status').textContent='✓ Report ready';
       setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),2000);
       await getVisual();
     });
 
     pbiReport.on('error', async(err)=>{
-      console.error('PBI error:', err.detail);
-      document.getElementById('pbi-status').textContent='Loading...';
+      console.error('PBI report error:', JSON.stringify(err.detail));
+      document.getElementById('pbi-status').textContent='Report error — check console';
     });
 
   }catch(e){
-    console.error('PBI init error:', e);
-    document.getElementById('pbi-status').textContent='SDK error';
-    // Fallback iframe
+    console.error('PBI init error:', e.message||e);
+    document.getElementById('pbi-status').textContent='Using iframe fallback';
     document.getElementById('pbi-container').innerHTML=`
       <iframe style="width:100%;height:100%;border:none;"
         src="https://app.powerbi.com/reportEmbed?reportId=771ac7b8-a37d-4028-825d-8b9f189ed0c4&groupId=f19c474c-d2d1-4f91-853d-a5839a682e30&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2">
