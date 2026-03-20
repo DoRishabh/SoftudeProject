@@ -101,7 +101,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
         <span class="pbi-status" id="pbi-status">Loading report...</span>
         <span class="visual-badge" id="visual-badge">BAR</span>
       </div>
-      <a class="open-btn" href="https://app.powerbi.com/groups/f19c474c-d2d1-4f91-853d-a5839a682e30/reports/94149234-b1d8-41e0-9832-ca338e441e23" target="_blank">Open Full ↗</a>
+      <a class="open-btn" href="https://app.powerbi.com/groups/f19c474c-d2d1-4f91-853d-a5839a682e30/reports/771ac7b8-a37d-4028-825d-8b9f189ed0c4" target="_blank">Open Full ↗</a>
     </div>
     <div id="pbi-container"></div>
   </div>
@@ -165,7 +165,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 <script>
 const API       = 'https://softudeproject.onrender.com/query';
 const EMBED_URL = 'https://softudeproject.onrender.com/pbi-embed-token';
-const PAGE_NAME = '49e297931bf12ed2d54f';
+const PAGE_NAME = '103d9261af9b145cb9ce';
 const CACHE     = {};
 const PAL       = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
 const GC        = 'rgba(42,45,62,0.8)';
@@ -276,7 +276,7 @@ async function initPBI(){
     // Fallback iframe
     document.getElementById('pbi-container').innerHTML=`
       <iframe style="width:100%;height:100%;border:none;"
-        src="https://app.powerbi.com/reportEmbed?reportId=94149234-b1d8-41e0-9832-ca338e441e23&groupId=f19c474c-d2d1-4f91-853d-a5839a682e30&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2">
+        src="https://app.powerbi.com/reportEmbed?reportId=771ac7b8-a37d-4028-825d-8b9f189ed0c4&groupId=f19c474c-d2d1-4f91-853d-a5839a682e30&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2">
       </iframe>`;
   }
 }
