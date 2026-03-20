@@ -114,7 +114,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 
       <div class="query-row">
         <input class="query-input" id="question" name="question" type="text"
-          placeholder="e.g. top products pie chart..."
+          placeholder="e.g. top 5 products pie chart..."
           onkeydown="if(event.key==='Enter') ask()"/>
         <button class="run-btn" id="run-btn" onclick="ask()">▶ RUN</button>
       </div>
@@ -175,7 +175,6 @@ const TT        = {
   callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
 };
 
-// Page map — keyword → Power BI page name
 const PAGE_MAP = {
   'bar':     'ac78c10e92e85a47acf8',
   'pie':     '2be3a07c554f964972ad',
@@ -189,24 +188,45 @@ const PAGE_MAP = {
 };
 
 const PAGE_LABELS = {
-  'ac78c10e92e85a47acf8': 'BAR',
-  '2be3a07c554f964972ad': 'PIE',
-  '2da794ab6e4126704f57': 'LINE',
-  '725874e6204485717a53': 'COLUMN',
-  'c8e3dda9d88b04655e23': 'AREA',
-  '9a60fe486e4c04b82f77': 'DONUT',
-  '360bb97baa79c2ad2454': 'SCATTER',
-  'da986f381b26a2a60cdf': 'TABLE',
+  'ac78c10e92e85a47acf8':'BAR',
+  '2be3a07c554f964972ad':'PIE',
+  '2da794ab6e4126704f57':'LINE',
+  '725874e6204485717a53':'COLUMN',
+  'c8e3dda9d88b04655e23':'AREA',
+  '9a60fe486e4c04b82f77':'DONUT',
+  '360bb97baa79c2ad2454':'SCATTER',
+  'da986f381b26a2a60cdf':'TABLE',
 };
 
-const DEFAULT_PAGE = 'ac78c10e92e85a47acf8'; // Bar chart default
+// Chart.js type map
+const CHARTJS_MAP = {
+  'bar':     {type:'bar',    indexAxis:'y'},
+  'pie':     {type:'pie',    indexAxis:'x'},
+  'line':    {type:'line',   indexAxis:'x'},
+  'column':  {type:'bar',    indexAxis:'x'},
+  'area':    {type:'line',   indexAxis:'x', fill:true},
+  'donut':   {type:'doughnut',indexAxis:'x'},
+  'doughnut':{type:'doughnut',indexAxis:'x'},
+  'scatter': {type:'scatter',indexAxis:'x'},
+  'table':   {type:'bar',    indexAxis:'y'},
+};
+
+const DEFAULT_PAGE = 'ac78c10e92e85a47acf8';
 
 function detectPage(q){
-  q = q.toLowerCase();
-  for(const [kw, page] of Object.entries(PAGE_MAP)){
+  q=q.toLowerCase();
+  for(const [kw,page] of Object.entries(PAGE_MAP)){
     if(q.includes(kw)) return page;
   }
   return DEFAULT_PAGE;
+}
+
+function detectChartConfig(q){
+  q=q.toLowerCase();
+  for(const [kw,cfg] of Object.entries(CHARTJS_MAP)){
+    if(q.includes(kw)) return cfg;
+  }
+  return {type:'bar',indexAxis:'y'}; // default horizontal bar
 }
 
 const models = {TokenType:{Embed:1},BackgroundType:{Transparent:2}};
@@ -217,11 +237,12 @@ const chart = new Chart(document.getElementById('chart-canvas-area').getContext(
   type:'bar',
   data:{labels:[],datasets:[{label:'Value',data:[],backgroundColor:[],borderColor:[],borderWidth:1.5,borderRadius:4}]},
   options:{
+    indexAxis:'y',
     responsive:false,animation:false,
     plugins:{legend:{display:false},tooltip:TT},
     scales:{
-      x:{ticks:{color:TC,font:{size:9},maxRotation:35},grid:{color:GC},border:{color:'#2a2d3e'}},
-      y:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}}
+      x:{ticks:{color:TC,font:{family:'Space Mono',size:9},callback:v=>fmtN(v)},grid:{color:GC},border:{color:'#2a2d3e',dash:[4,4]}},
+      y:{ticks:{color:TC,font:{size:9},maxRotation:0},grid:{color:GC},border:{color:'#2a2d3e'}}
     }
   }
 });
@@ -230,52 +251,37 @@ async function initPBI(){
   try{
     document.getElementById('pbi-status').textContent='Fetching embed token...';
     document.getElementById('pbi-status').classList.add('show');
-
     const res  = await fetch(EMBED_URL);
     const json = await res.json();
     console.log('Embed token response:', JSON.stringify(json).substring(0,80));
-
     if(json.error) throw new Error(json.error);
     if(!json.token) throw new Error('No token');
-
     if(typeof window.powerbi==='undefined') throw new Error('powerbi-client not loaded');
-
     pbiService = window.powerbi;
     const container = document.getElementById('pbi-container');
     pbiService.reset(container);
-
     const config = {
-      type:        'report',
-      id:          json.report_id,
-      embedUrl:    json.embed_url,
-      accessToken: json.token,
-      tokenType:   models.TokenType.Embed,
-      pageName:    DEFAULT_PAGE,
-      settings:{
-        navContentPaneEnabled: false,
-        filterPaneEnabled:     false,
-      }
+      type:'report',
+      id:json.report_id,
+      embedUrl:json.embed_url,
+      accessToken:json.token,
+      tokenType:models.TokenType.Embed,
+      pageName:DEFAULT_PAGE,
+      settings:{navContentPaneEnabled:false,filterPaneEnabled:false}
     };
-
     pbiReport = pbiService.embed(container, config);
-
-    pbiReport.on('loaded', ()=>{
+    pbiReport.on('loaded',()=>{
       console.log('PBI report loaded!');
       document.getElementById('pbi-status').textContent='✓ Report ready';
       setTimeout(()=>document.getElementById('pbi-status').classList.remove('show'),2000);
     });
-
-    pbiReport.on('error', (err)=>{
-      console.error('PBI error:', JSON.stringify(err.detail));
+    pbiReport.on('error',(err)=>{
+      console.error('PBI error:',JSON.stringify(err.detail));
     });
-
   }catch(e){
-    console.error('PBI init error:', e.message||e);
+    console.error('PBI init error:',e.message||e);
     document.getElementById('pbi-status').textContent='Using iframe fallback';
-    document.getElementById('pbi-container').innerHTML=`
-      <iframe style="width:100%;height:100%;border:none;"
-        src="https://app.powerbi.com/reportEmbed?reportId=771ac7b8-a37d-4028-825d-8b9f189ed0c4&groupId=f19c474c-d2d1-4f91-853d-a5839a682e30&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2">
-      </iframe>`;
+    document.getElementById('pbi-container').innerHTML=`<iframe style="width:100%;height:100%;border:none;" src="https://app.powerbi.com/reportEmbed?reportId=771ac7b8-a37d-4028-825d-8b9f189ed0c4&groupId=f19c474c-d2d1-4f91-853d-a5839a682e30&autoAuth=true&ctid=6b294ab1-ef86-420e-ad9d-f373438e21d2"></iframe>`;
   }
 }
 
@@ -286,9 +292,9 @@ async function switchPage(pageName){
     const label = PAGE_LABELS[pageName]||'CHART';
     document.getElementById('visual-badge').textContent=label;
     document.getElementById('visual-badge').classList.add('show');
-    console.log('Switched to page:', pageName, label);
+    console.log('Switched to page:',pageName,label);
   }catch(e){
-    console.error('Switch page error:', e.message||e);
+    console.error('Switch page error:',e.message||e);
   }
 }
 
@@ -351,11 +357,8 @@ async function ask(){
     document.getElementById('push-badge').classList.add('show');
     document.getElementById('pbi-status').textContent='✓ Pushed! Switching visual...';
 
-    // Switch to correct page + refresh
     await switchPage(pageName);
-    if(pbiReport){
-      try{ await pbiReport.refresh(); }catch(e){}
-    }
+    if(pbiReport){try{await pbiReport.refresh();}catch(e){}}
 
     setTimeout(()=>{
       document.getElementById('pbi-status').textContent='✓ Power BI updated!';
@@ -373,23 +376,14 @@ async function ask(){
   }
 }
 
-function detectChartType(q){
-  q=q.toLowerCase();
-  if(q.includes('pie'))return 'pie';
-  if(q.includes('donut')||q.includes('doughnut'))return 'doughnut';
-  if(q.includes('line')||q.includes('area'))return 'line';
-  if(q.includes('scatter'))return 'scatter';
-  return 'bar';
-}
-
 function render(json,q,fromCache){
   const{columns,data,sql}=json;
   const sliced=data.slice(0,10);
   const labels=sliced.map(r=>{const v=String(r[columns[0]]);return v.length>16?v.substring(0,14)+'…':v;});
   const values=sliced.map(r=>parseFloat(r[columns[1]])||0);
-  const ctype=detectChartType(q);
-  const isRound=ctype==='pie'||ctype==='doughnut';
-  const isFill=q.toLowerCase().includes('area');
+  const cfg=detectChartConfig(q);
+  const isRound=cfg.type==='pie'||cfg.type==='doughnut';
+  const isScatter=cfg.type==='scatter';
 
   document.getElementById('result-card').style.display='block';
   document.getElementById('result-q').textContent=q;
@@ -398,20 +392,36 @@ function render(json,q,fromCache){
     ?'<span class="tag-cached">CACHED</span>'
     :'<span class="tag-live">LIVE</span>';
 
-  chart.config.type=ctype;
+  // Update chart type and orientation
+  chart.config.type=cfg.type;
+  chart.options.indexAxis=cfg.indexAxis||'x';
   chart.data.labels=labels;
   chart.data.datasets[0].label=columns[1]||'Value';
-  chart.data.datasets[0].data=values;
+  chart.data.datasets[0].data=isScatter?values.map((v,i)=>({x:i,y:v})):values;
   chart.data.datasets[0].backgroundColor=isRound?PAL.slice(0,values.length).map(c=>c+'dd'):PAL.slice(0,values.length).map(c=>c+'bb');
   chart.data.datasets[0].borderColor=PAL.slice(0,values.length);
-  chart.data.datasets[0].fill=isFill;
+  chart.data.datasets[0].fill=cfg.fill||false;
   chart.options.scales.x.display=!isRound;
   chart.options.scales.y.display=!isRound;
+
+  // Swap axis labels for horizontal vs vertical
+  if(!isRound){
+    if(cfg.indexAxis==='y'){
+      // Horizontal bar — x=values, y=labels
+      chart.options.scales.x.ticks.callback=v=>fmtN(v);
+      chart.options.scales.y.ticks.callback=undefined;
+    } else {
+      // Vertical — x=labels, y=values
+      chart.options.scales.y.ticks.callback=v=>fmtN(v);
+      chart.options.scales.x.ticks.callback=undefined;
+    }
+  }
+
   chart.update('none');
 
   const kw={SELECT:'#ff4081',FROM:'#ff7043',JOIN:'#00d4ff',ON:'#40c4ff',WHERE:'#76ff03','GROUP BY':'#76ff03','ORDER BY':'#76ff03',LIMIT:'#ffd740',SUM:'#ea80fc',COUNT:'#ea80fc',AVG:'#ea80fc'};
   let h=sql||'';
-  Object.entries(kw).forEach(([k,c])=>{h=h.replace(new RegExp(`\b${k}\b`,'g'),`<span style="color:${c}">${k}</span>`);});
+  Object.entries(kw).forEach(([k,c])=>{h=h.replace(new RegExp('\\b'+k+'\\b','g'),'<span style="color:'+c+'">'+k+'</span>');});
   document.getElementById('sql-box').innerHTML=h;
 }
 
