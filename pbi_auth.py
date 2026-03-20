@@ -8,12 +8,16 @@ def get_pbi_token():
     tenant_id     = os.getenv("AZURE_TENANT_ID")
     client_id     = os.getenv("AZURE_CLIENT_ID")
     client_secret = os.getenv("AZURE_CLIENT_SECRET")
+    username      = os.getenv("PBI_USERNAME")
+    password      = os.getenv("PBI_PASSWORD")
 
     url  = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
     data = {
-        "grant_type":    "client_credentials",
+        "grant_type":    "password",
         "client_id":     client_id,
         "client_secret": client_secret,
+        "username":      username,
+        "password":      password,
         "scope":         "https://analysis.windows.net/powerbi/api/.default"
     }
     response = requests.post(url, data=data)
