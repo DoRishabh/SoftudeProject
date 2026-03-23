@@ -22,17 +22,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Page 1 report
 REPORT_ID = "771ac7b8-a37d-4028-825d-8b9f189ed0c4"
 GROUP_ID  = "f19c474c-d2d1-4f91-853d-a5839a682e30"
+
+# Page 2 report (your slicer task report)
+REPORT_ID_2 = "4f1df241-4d62-4774-bb25-8af18d1e553f"
+CTID        = "6b294ab1-ef86-420e-ad9d-f373438e21d2"
+
 
 @app.get("/")
 def serve_home():
     return FileResponse("index.html")
 
-# ✅ NEW — serves the second page
+
+# ✅ serves second page
 @app.get("/slicer2")
 def serve_slicer2():
     return FileResponse("slicer2.html")
+
 
 @app.get("/pbi-token")
 def pbi_token():
@@ -43,6 +51,7 @@ def pbi_token():
         return {"token": token}
     except Exception as e:
         return {"error": str(e)}
+
 
 @app.get("/pbi-embed-token")
 def pbi_embed_token():
@@ -56,18 +65,52 @@ def pbi_embed_token():
         body = {"accessLevel": "Edit"}
 
         resp = requests.post(url, headers=headers, json=body)
-        print(f"Embed token: {resp.status_code} {resp.text[:200]}")
         data = resp.json()
         token = data.get("token")
 
         if not token:
-            print(f"Embed token failed: {data}")
             return {"error": str(data)}
 
         return {
             "token": token,
             "report_id": REPORT_ID,
             "embed_url": f"https://app.powerbi.com/reportEmbed?reportId={REPORT_ID}&groupId={GROUP_ID}"
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# ✅ embed token for the second report
+@app.get("/pbi-embed-token-2")
+def pbi_embed_token_2():
+    try:
+        access_token = get_pbi_token()
+        if not access_token:
+            return {"error": "No access token"}
+
+        # Try with GROUP_ID first — if report is in My Workspace use the fallback below
+        url = f"https://api.powerbi.com/v1.0/myorg/groups/{GROUP_ID}/reports/{REPORT_ID_2}/GenerateToken"
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        body = {"accessLevel": "View"}
+
+        resp = requests.post(url, headers=headers, json=body)
+        data = resp.json()
+        token = data.get("token")
+
+        # Fallback: report might be in My Workspace (no group)
+        if not token:
+            url2 = f"https://api.powerbi.com/v1.0/myorg/reports/{REPORT_ID_2}/GenerateToken"
+            resp2 = requests.post(url2, headers=headers, json=body)
+            data = resp2.json()
+            token = data.get("token")
+
+        if not token:
+            return {"error": str(data)}
+
+        return {
+            "token": token,
+            "report_id": REPORT_ID_2,
+            "embed_url": f"https://app.powerbi.com/reportEmbed?reportId={REPORT_ID_2}&groupId={GROUP_ID}"
         }
     except Exception as e:
         return {"error": str(e)}
