@@ -27,6 +27,18 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .pbi-push-badge{font-family:'Space Mono',monospace;font-size:9px;padding:3px 10px;border-radius:3px;background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);color:var(--lime);display:none;}
 .pbi-push-badge.show{display:inline-block;}
+
+/* ✅ NEW — page 2 nav button */
+.page2-btn{
+  font-family:'Space Mono',monospace;font-size:10px;
+  padding:4px 12px;border-radius:4px;
+  border:1px solid rgba(0,212,255,0.3);
+  color:var(--cyan);background:rgba(0,212,255,0.06);
+  text-decoration:none;white-space:nowrap;
+  transition:all 0.2s;
+}
+.page2-btn:hover{background:rgba(0,212,255,0.14);border-color:var(--cyan);}
+
 .main-body{flex:1;display:flex;overflow:hidden;}
 .pbi-panel{flex:1;display:flex;flex-direction:column;border-right:2px solid var(--border2);}
 .pbi-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -88,6 +100,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
   <div class="nav-right">
     <span class="pbi-push-badge" id="push-badge">✓ PUSHED TO POWER BI</span>
     <div class="live-badge"><div class="live-dot"></div>SNOWFLAKE LIVE</div>
+    <!-- ✅ NEW — link to page 2 -->
+    <a href="/slicer2" class="page2-btn">DYNAMIC SLICER →</a>
   </div>
 </div>
 
@@ -198,7 +212,6 @@ const PAGE_LABELS = {
   'da986f381b26a2a60cdf':'TABLE',
 };
 
-// Chart.js type map
 const CHARTJS_MAP = {
   'bar':     {type:'bar',    indexAxis:'y'},
   'pie':     {type:'pie',    indexAxis:'x'},
@@ -226,7 +239,7 @@ function detectChartConfig(q){
   for(const [kw,cfg] of Object.entries(CHARTJS_MAP)){
     if(q.includes(kw)) return cfg;
   }
-  return {type:'bar',indexAxis:'y'}; // default horizontal bar
+  return {type:'bar',indexAxis:'y'};
 }
 
 const models = {TokenType:{Embed:1},BackgroundType:{Transparent:2}};
@@ -392,7 +405,6 @@ function render(json,q,fromCache){
     ?'<span class="tag-cached">CACHED</span>'
     :'<span class="tag-live">LIVE</span>';
 
-  // Update chart type and orientation
   chart.config.type=cfg.type;
   chart.options.indexAxis=cfg.indexAxis||'x';
   chart.data.labels=labels;
@@ -404,14 +416,11 @@ function render(json,q,fromCache){
   chart.options.scales.x.display=!isRound;
   chart.options.scales.y.display=!isRound;
 
-  // Swap axis labels for horizontal vs vertical
   if(!isRound){
     if(cfg.indexAxis==='y'){
-      // Horizontal bar — x=values, y=labels
       chart.options.scales.x.ticks.callback=v=>fmtN(v);
       chart.options.scales.y.ticks.callback=undefined;
     } else {
-      // Vertical — x=labels, y=values
       chart.options.scales.y.ticks.callback=v=>fmtN(v);
       chart.options.scales.x.ticks.callback=undefined;
     }
