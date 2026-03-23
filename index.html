@@ -166,25 +166,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 const API       = 'https://softudeproject.onrender.com/query';
 const EMBED_URL = 'https://softudeproject.onrender.com/pbi-embed-token';
 const CACHE     = {};
-
-// Fuzzy key — normalizes query for cache matching
-function fuzzyKey(q){
-  return q.toLowerCase()
-    .trim()
-    .replace(/\s+/g,' ')
-    .replace(/charts?/g,'chart')
-    .replace(/graphs?/g,'chart')
-    .replace(/plots?/g,'chart')
-    .replace(/[^a-z0-9 ]/g,'')
-    .split(' ')
-    .sort()
-    .join(' ');
-}
-
-const PAL = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
-const GC  = 'rgba(42,45,62,0.8)';
-const TC  = '#4a4d6a';
-const TT  = {
+const PAL       = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
+const GC        = 'rgba(42,45,62,0.8)';
+const TC        = '#4a4d6a';
+const TT        = {
   backgroundColor:'#1e2130',borderColor:'#2a2d3e',borderWidth:1,
   titleColor:'#e2e4f0',bodyColor:'#8a8da0',padding:10,cornerRadius:6,
   callbacks:{label:ctx=>' '+fmtN(ctx.parsed.y!==undefined?ctx.parsed.y:ctx.parsed)}
@@ -213,16 +198,17 @@ const PAGE_LABELS = {
   'da986f381b26a2a60cdf':'TABLE',
 };
 
+// Chart.js type map
 const CHARTJS_MAP = {
-  'bar':     {type:'bar',     indexAxis:'y'},
-  'pie':     {type:'pie',     indexAxis:'x'},
-  'line':    {type:'line',    indexAxis:'x'},
-  'column':  {type:'bar',     indexAxis:'x'},
-  'area':    {type:'line',    indexAxis:'x', fill:true},
+  'bar':     {type:'bar',    indexAxis:'y'},
+  'pie':     {type:'pie',    indexAxis:'x'},
+  'line':    {type:'line',   indexAxis:'x'},
+  'column':  {type:'bar',    indexAxis:'x'},
+  'area':    {type:'line',   indexAxis:'x', fill:true},
   'donut':   {type:'doughnut',indexAxis:'x'},
   'doughnut':{type:'doughnut',indexAxis:'x'},
-  'scatter': {type:'scatter', indexAxis:'x'},
-  'table':   {type:'bar',     indexAxis:'y'},
+  'scatter': {type:'scatter',indexAxis:'x'},
+  'table':   {type:'bar',    indexAxis:'y'},
 };
 
 const DEFAULT_PAGE = 'ac78c10e92e85a47acf8';
@@ -240,7 +226,7 @@ function detectChartConfig(q){
   for(const [kw,cfg] of Object.entries(CHARTJS_MAP)){
     if(q.includes(kw)) return cfg;
   }
-  return {type:'bar',indexAxis:'y'};
+  return {type:'bar',indexAxis:'y'}; // default horizontal bar
 }
 
 const models = {TokenType:{Embed:1},BackgroundType:{Transparent:2}};
@@ -345,11 +331,10 @@ function hideErr(){document.getElementById('err-box').style.display='none';}
 async function ask(){
   const q=document.getElementById('question').value.trim();
   if(!q)return;
-  const key=fuzzyKey(q);
+  const key=q.toLowerCase();
   const pageName=detectPage(q);
 
   if(CACHE[key]){
-    console.log('Cache hit! Skipping API call for:', q);
     render(CACHE[key],q,true);
     await switchPage(pageName);
     return;
@@ -369,7 +354,6 @@ async function ask(){
     if(!json.data||!json.data.length){showErr('⚠ No data returned. Try rephrasing.');document.getElementById('pbi-status').classList.remove('show');return;}
 
     CACHE[key]=json;
-    console.log('API called, cached with key:', key);
     document.getElementById('push-badge').classList.add('show');
     document.getElementById('pbi-status').textContent='✓ Pushed! Switching visual...';
 
@@ -408,6 +392,7 @@ function render(json,q,fromCache){
     ?'<span class="tag-cached">CACHED</span>'
     :'<span class="tag-live">LIVE</span>';
 
+  // Update chart type and orientation
   chart.config.type=cfg.type;
   chart.options.indexAxis=cfg.indexAxis||'x';
   chart.data.labels=labels;
@@ -419,11 +404,14 @@ function render(json,q,fromCache){
   chart.options.scales.x.display=!isRound;
   chart.options.scales.y.display=!isRound;
 
+  // Swap axis labels for horizontal vs vertical
   if(!isRound){
     if(cfg.indexAxis==='y'){
+      // Horizontal bar — x=values, y=labels
       chart.options.scales.x.ticks.callback=v=>fmtN(v);
       chart.options.scales.y.ticks.callback=undefined;
     } else {
+      // Vertical — x=labels, y=values
       chart.options.scales.y.ticks.callback=v=>fmtN(v);
       chart.options.scales.x.ticks.callback=undefined;
     }
