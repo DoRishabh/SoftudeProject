@@ -331,7 +331,15 @@ function hideErr(){document.getElementById('err-box').style.display='none';}
 async function ask(){
   const q=document.getElementById('question').value.trim();
   if(!q)return;
-  const key=q.toLowerCase();
+  // Normalize — remove extra spaces, punctuation, common variations
+const key = q.toLowerCase()
+  .trim()
+  .replace(/\s+/g, ' ')           // multiple spaces → single space
+  .replace(/charts?/g, 'chart')   // "charts" → "chart"
+  .replace(/graphs?/g, 'chart')   // "graph" → "chart"
+  .replace(/plots?/g, 'chart')    // "plot" → "chart"
+  .replace(/top\s+(\d+)/g, 'top$1') // "top 10" → "top10"
+  .replace(/[^a-z0-9 ]/g, '');   // remove punctuation
   const pageName=detectPage(q);
 
   if(CACHE[key]){
