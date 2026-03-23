@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dynamic Slicer</title>
+  <script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6fb; }
+
+    .topbar {
+      background: #1a1a2e;
+      color: white;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topbar h1 { font-size: 18px; font-weight: 500; }
+    .topbar a {
+      color: #a0aec0;
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .topbar a:hover { color: white; }
+
+    #status-bar {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 24px;
+      font-size: 13px;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #a0aec0;
+      flex-shrink: 0;
+    }
+    .dot.green { background: #48bb78; }
+    .dot.amber { background: #ed8936; }
+    .dot.red   { background: #fc8181; }
+
+    #slicer-badges {
+      display: flex;
+      gap: 8px;
+      padding: 10px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid #e2e8f0;
+      background: #f7fafc;
+      color: #718096;
+    }
+    .badge.selected { background: #ebf8ff; color: #2b6cb0; border-color: #bee3f8; }
+    .badge.hidden-badge { background: #fff5f5; color: #c53030; border-color: #fed7d7; }
+
+    #reportContainer {
+      margin: 0;
+      height: calc(100vh - 110px);
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Dynamic Slicer Demo</h1>
+  <a href="/">← Back to main page</a>
+</div>
+
+<div id="status-bar">
+  <div class="dot" id="dot"></div>
+  <span id="status-text">Fetching embed token...</span>
+</div>
+
+<div id="slicer-badges">
+  <span class="badge" id="badge1">Slicer 1: —</span>
+  <span class="badge" id="badge2">Slicer 2: —</span>
+  <span class="badge hidden-badge" id="badge3">Slicer 3: hidden</span>
+</div>
+
+<div id="reportContainer"></div>
+
+<script>
+  const models = window['powerbi-client'].models;
+
+  // These will hold references to the three slicer visuals
+  let slicer1 = null, slicer2 = null, slicer3 = null;
+
+  function setStatus(msg, color) {
+    document.getElementById('status-text').textContent = msg;
+    const dot = document.getElementById('dot');
+    dot.className = 'dot ' + (color || '');
+  }
+
+  async function init() {
+    setStatus('Fetching embed token...', '');
+
+    // Calls YOUR existing /pbi-embed-token endpoint
+    const res = await fetch('/pbi-embed-token');
+    const data = await res.json();
+
+    if (data.error) {
+      setStatus('Token error: ' + data.error, 'red');
+      return;
+    }
+
+    setStatus('Embedding report...', 'amber');
+
+    const embedConfig = {
+      type: 'report',
+      id: data.report_id,
+      embedUrl: data.embed_url,
+      accessToken: data.token,
+      tokenType: models.TokenType.Embed,
+      settings: {
+        filterPaneEnabled: false,
+        navContentPaneEnabled: false
+      }
+    };
+
+    const report = powerbi.embed(
+      document.getElementById('reportContainer'),
+      embedConfig
+    );
+
+    // Once report is fully rendered
+    report.on('rendered', async () => {
+      setStatus('Report loaded. Finding slicers...', 'amber');
+
+      try {
+        const pages = await report.getPages();
+        const page = pages.find(p => p.isActive);
+        const visuals = await page.getVisuals();
+
+        // LOG THIS — open browser console (F12) to see your exact slicer titles
+        console.log('=== ALL VISUALS ===');
+        visuals.forEach(v => console.log(`type: ${v.type} | title: "${v.title}" | name: "${v.name}"`));
+
+        const slicers = visuals.filter(v => v.type === 'slicer');
+        console.log('=== SLICERS ONLY ===', slicers.map(s => s.title));
+
+        // ⚠️ CHANGE THESE THREE TITLES to match your console output exactly
+        slicer1 = slicers.find(s => s.title === 'Program');         // e.g. slicer 1
+        slicer2 = slicers.find(s => s.title === 'Year');            // e.g. slicer 2
+        slicer3 = slicers.find(s => s.title === 'Month-Quarter');   // e.g. slicer 3
+
+        if (!slicer1 || !slicer2 || !slicer3) {
+          setStatus(
+            `Could not find slicers. Check console. Found: ${slicers.map(s=>s.title).join(', ')}`,
+            'red'
+          );
+          return;
+        }
+
+        // Hide slicer 3 on load — this is the real SDK hide
+        await slicer3.setVisualDisplayState(
+          models.VisualContainerDisplayMode.Hidden
+        );
+
+        updateBadge(1, null, false);
+        updateBadge(2, null, false);
+        updateBadge(3, null, true); // hidden
+
+        setStatus('Ready — select both Slicer 1 and Slicer 2 to reveal Slicer 3', 'green');
+
+      } catch (err) {
+        setStatus('Error finding slicers: ' + err.message, 'red');
+        console.error(err);
+      }
+    });
+
+    // This fires every time the user clicks a slicer value
+    report.on('dataSelected', async () => {
+      await checkAndToggle();
+    });
+
+    // Belt-and-suspenders: also fires on filter change
+    report.on('filtersApplied', async () => {
+      await checkAndToggle();
+    });
+  }
+
+  async function checkAndToggle() {
+    if (!slicer1 || !slicer2 || !slicer3) return;
+
+    try {
+      const [state1, state2] = await Promise.all([
+        slicer1.getSlicerState(),
+        slicer2.getSlicerState()
+      ]);
+
+      const s1Active = state1.filters && state1.filters.length > 0;
+      const s2Active = state2.filters && state2.filters.length > 0;
+      const showSlicer3 = s1Active && s2Active;
+
+      // The actual SDK show/hide call
+      await slicer3.setVisualDisplayState(
+        showSlicer3
+          ? models.VisualContainerDisplayMode.Visible
+          : models.VisualContainerDisplayMode.Hidden
+      );
+
+      // Update status bar
+      updateBadge(1, state1, false);
+      updateBadge(2, state2, false);
+      updateBadge(3, null, !showSlicer3);
+
+      if (showSlicer3) {
+        setStatus('✓ Both slicers selected — Slicer 3 is now visible', 'green');
+      } else {
+        setStatus(
+          `Select both slicers to reveal Slicer 3 — ` +
+          `Slicer1: ${s1Active ? '✓' : '✗'}  Slicer2: ${s2Active ? '✓' : '✗'}`,
+          'amber'
+        );
+      }
+
+    } catch (err) {
+      console.error('checkAndToggle error:', err);
+    }
+  }
+
+  function updateBadge(num, state, isHidden) {
+    const el = document.getElementById('badge' + num);
+    if (isHidden) {
+      el.className = 'badge hidden-badge';
+      el.textContent = `Slicer ${num}: hidden`;
+      return;
+    }
+    if (!state || !state.filters || state.filters.length === 0) {
+      el.className = 'badge';
+      el.textContent = `Slicer ${num}: none`;
+      return;
+    }
+    // Try to get the selected value from the filter
+    const f = state.filters[0];
+    const vals = f.values ? f.values.join(', ') : '(selected)';
+    el.className = 'badge selected';
+    el.textContent = `Slicer ${num}: ${vals}`;
+  }
+
+  init();
+</script>
+</body>
+</html>
