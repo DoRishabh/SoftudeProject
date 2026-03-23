@@ -345,8 +345,7 @@ async function ask(){
   const q=document.getElementById('question').value.trim();
   if(!q)return;
   // Normalize — remove extra spaces, punctuation, common variations
-const key = q.toLowerCase()
-  .trim()
+const key = fuzzyKey(q);  .trim()
   .replace(/\s+/g, ' ')           // multiple spaces → single space
   .replace(/charts?/g, 'chart')   // "charts" → "chart"
   .replace(/graphs?/g, 'chart')   // "graph" → "chart"
