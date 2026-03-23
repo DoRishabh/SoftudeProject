@@ -93,15 +93,19 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 <script>
 const models = window['powerbi-client'].models;
 
-let slProgram = null;
-let slYear    = null;
-let slMonthQ  = null;
-let slShow    = null;
+// ── exposed globally so console tests work ─────────────────────
+window.slProgram = null;
+window.slYear    = null;
+window.slMonthQ  = null;
+window.slShow    = null;
 
-// table/column targets — auto-detected from slicer state on first set
 let targetProgram = null;
 let targetYear    = null;
 let targetMonthQ  = null;
+
+// confirmed: Visible=0, Hidden=1
+const VISIBLE = models.VisualContainerDisplayMode.Visible; // 0
+const HIDDEN  = models.VisualContainerDisplayMode.Hidden;  // 1
 
 function setStatus(msg, color) {
   document.getElementById('status-text').textContent = msg;
@@ -120,13 +124,36 @@ function isQuarterValue(str) {
   return /^Q[1-4]-\d{4}$/i.test(str.trim());
 }
 
+function delay(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+// ── show/hide with retry ───────────────────────────────────────
+async function setDisplay(visual, show) {
+  const mode = show ? VISIBLE : HIDDEN;
+  try {
+    await visual.setVisualDisplayState(mode);
+    console.log(`setVisualDisplayState(${show ? 'VISIBLE=0' : 'HIDDEN=1'}) → success`);
+  } catch(e) {
+    console.warn(`setVisualDisplayState failed, retrying in 500ms...`, e);
+    await delay(500);
+    try {
+      await visual.setVisualDisplayState(mode);
+      console.log(`setVisualDisplayState retry → success`);
+    } catch(e2) {
+      console.error(`setVisualDisplayState retry failed`, e2);
+    }
+  }
+}
+
+// ── condition check ────────────────────────────────────────────
 async function checkCondition() {
-  if (!slProgram || !slMonthQ || !slShow) return;
+  if (!window.slProgram || !window.slMonthQ || !window.slShow) return;
 
   try {
     const [stP, stM] = await Promise.all([
-      slProgram.getSlicerState(),
-      slMonthQ.getSlicerState()
+      window.slProgram.getSlicerState(),
+      window.slMonthQ.getSlicerState()
     ]);
 
     const programVals = stP.filters.length > 0 && stP.filters[0].values
@@ -141,12 +168,13 @@ async function checkCondition() {
 
     const show = programOk && quarterOk;
 
-    await slShow.setVisualDisplayState(
-      show
-        ? models.VisualContainerDisplayMode.Visible
-        : models.VisualContainerDisplayMode.Hidden
-    );
+    console.log(`checkCondition → programOk:${programOk} quarterOk:${quarterOk} show:${show}`);
 
+    // wait for PBI to finish processing before touching display state
+    await delay(300);
+    await setDisplay(window.slShow, show);
+
+    // update badges
     const cp = document.getElementById('c-program');
     cp.textContent = programVals.length ? `Program: ${programVals.join(', ')}` : 'Program: none';
     cp.className = 'cbadge ' + (programOk ? 'met' : 'unmet');
@@ -171,42 +199,35 @@ async function checkCondition() {
   }
 }
 
-// auto-detect target from slicer's own state
+// ── auto-detect table/column from slicer state ─────────────────
 async function getTarget(slicer, fallbackTable, fallbackCol) {
   try {
     const st = await slicer.getSlicerState();
-    console.log(`getSlicerState for ${fallbackCol}:`, JSON.stringify(st));
+    console.log(`getSlicerState [${fallbackCol}]:`, JSON.stringify(st));
     if (st.filters && st.filters.length > 0 && st.filters[0].target) {
       return st.filters[0].target;
     }
   } catch(e) {
-    console.warn('Could not read slicer state, using fallback target');
+    console.warn('getSlicerState failed, using fallback for', fallbackCol);
   }
   return { table: fallbackTable, column: fallbackCol };
 }
 
+// ── query parser ───────────────────────────────────────────────
 async function runQuery() {
-  // ── keep original case for values, lowercase only for keyword matching ──
   const raw = document.getElementById('queryInput').value.trim();
   if (!raw) return;
   const low = raw.toLowerCase();
 
-  // regex matches "set program slicer to X" OR "set program to X"
   const programMatch = low.match(/set\s+program(?:\s+slicer)?\s+to\s+(\w+)/);
   const yearMatch    = low.match(/set\s+year(?:\s+slicer)?\s+to\s+(\d{4})/);
   const mqMatch      = low.match(/set\s+month[-\s]quarter(?:\s+slicer)?\s+to\s+(q[1-4]-\d{4})/);
 
   let acted = false;
 
-  // ── Program ──────────────────────────────────────────────────
-  if (programMatch && slProgram) {
-    const val = programMatch[1].toUpperCase(); // DEP, REP, SEP, PEP, MSEP
-
-    // auto-detect target on first use
-    if (!targetProgram) {
-      targetProgram = await getTarget(slProgram, 'Program Table', 'Program');
-    }
-
+  if (programMatch && window.slProgram) {
+    const val = programMatch[1].toUpperCase();
+    if (!targetProgram) targetProgram = await getTarget(window.slProgram, 'Program Table', 'Program');
     const filter = {
       $schema: 'http://powerbi.com/product/schema#basic',
       target: targetProgram,
@@ -214,10 +235,9 @@ async function runQuery() {
       values: [val],
       filterType: 1
     };
-
     try {
-      await slProgram.setSlicerState({ filters: [filter] });
-      toast(`✓ Program slicer → ${val}`);
+      await window.slProgram.setSlicerState({ filters: [filter] });
+      toast(`✓ Program → ${val}`);
       acted = true;
     } catch(e) {
       console.error('program set failed:', e);
@@ -225,14 +245,9 @@ async function runQuery() {
     }
   }
 
-  // ── Year ─────────────────────────────────────────────────────
-  if (yearMatch && slYear) {
+  if (yearMatch && window.slYear) {
     const val = parseInt(yearMatch[1]);
-
-    if (!targetYear) {
-      targetYear = await getTarget(slYear, 'Dim_Master_Dealer', 'Year');
-    }
-
+    if (!targetYear) targetYear = await getTarget(window.slYear, 'Dim_Master_Dealer', 'Year');
     const filter = {
       $schema: 'http://powerbi.com/product/schema#basic',
       target: targetYear,
@@ -240,10 +255,9 @@ async function runQuery() {
       values: [val],
       filterType: 1
     };
-
     try {
-      await slYear.setSlicerState({ filters: [filter] });
-      toast(`✓ Year slicer → ${val}`);
+      await window.slYear.setSlicerState({ filters: [filter] });
+      toast(`✓ Year → ${val}`);
       acted = true;
     } catch(e) {
       console.error('year set failed:', e);
@@ -251,14 +265,9 @@ async function runQuery() {
     }
   }
 
-  // ── Month-Quarter ─────────────────────────────────────────────
-  if (mqMatch && slMonthQ) {
-    const val = mqMatch[1].toUpperCase(); // Q1-2021
-
-    if (!targetMonthQ) {
-      targetMonthQ = await getTarget(slMonthQ, 'Dim_Master_Dealer', 'MonthQuarter');
-    }
-
+  if (mqMatch && window.slMonthQ) {
+    const val = mqMatch[1].toUpperCase();
+    if (!targetMonthQ) targetMonthQ = await getTarget(window.slMonthQ, 'Dim_Master_Dealer', 'MonthQuarter');
     const filter = {
       $schema: 'http://powerbi.com/product/schema#basic',
       target: targetMonthQ,
@@ -266,10 +275,9 @@ async function runQuery() {
       values: [val],
       filterType: 1
     };
-
     try {
-      await slMonthQ.setSlicerState({ filters: [filter] });
-      toast(`✓ Month-Quarter slicer → ${val}`);
+      await window.slMonthQ.setSlicerState({ filters: [filter] });
+      toast(`✓ Month-Quarter → ${val}`);
       acted = true;
     } catch(e) {
       console.error('mq set failed:', e);
@@ -282,11 +290,12 @@ async function runQuery() {
     return;
   }
 
-  // re-check condition after a short delay (let PBI process the change)
-  setTimeout(() => checkCondition(), 500);
+  await delay(500);
+  await checkCondition();
   document.getElementById('queryInput').value = '';
 }
 
+// ── init ───────────────────────────────────────────────────────
 async function init() {
   setStatus('Fetching embed token...', '');
 
@@ -300,7 +309,8 @@ async function init() {
     return;
   }
 
-  const report = powerbi.embed(
+  // expose report globally for console debugging
+  window.pbiReport = powerbi.embed(
     document.getElementById('reportContainer'),
     {
       type: 'report',
@@ -312,12 +322,12 @@ async function init() {
     }
   );
 
-  report.on('rendered', async () => {
+  window.pbiReport.on('rendered', async () => {
     document.getElementById('loader').style.display = 'none';
     setStatus('Finding slicers...', 'amber');
 
     try {
-      const pages   = await report.getPages();
+      const pages   = await window.pbiReport.getPages();
       const page    = pages.find(p => p.isActive);
       const visuals = await page.getVisuals();
 
@@ -329,16 +339,16 @@ async function init() {
       const slicers = visuals.filter(v => v.type === 'slicer');
       console.log('=== SLICER TITLES ===', slicers.map(s => s.title));
 
-      slProgram = slicers.find(s => s.title === 'Program slicer');
-      slYear    = slicers.find(s => s.title === 'Year slicer');
-      slMonthQ  = slicers.find(s => s.title === 'Month-Quarter slicer');
-      slShow    = slicers.find(s => s.title === 'Slicer_ShowQuarter');
+      window.slProgram = slicers.find(s => s.title === 'Program slicer');
+      window.slYear    = slicers.find(s => s.title === 'Year slicer');
+      window.slMonthQ  = slicers.find(s => s.title === 'Month-Quarter slicer');
+      window.slShow    = slicers.find(s => s.title === 'Slicer_ShowQuarter');
 
       const missing = [
-        !slProgram && 'Program slicer',
-        !slYear    && 'Year slicer',
-        !slMonthQ  && 'Month-Quarter slicer',
-        !slShow    && 'Slicer_ShowQuarter'
+        !window.slProgram && 'Program slicer',
+        !window.slYear    && 'Year slicer',
+        !window.slMonthQ  && 'Month-Quarter slicer',
+        !window.slShow    && 'Slicer_ShowQuarter'
       ].filter(Boolean);
 
       if (missing.length) {
@@ -347,17 +357,16 @@ async function init() {
         return;
       }
 
-      // hide on load
-      await slShow.setVisualDisplayState(
-        models.VisualContainerDisplayMode.Hidden
-      );
+      // pre-fetch targets
+      targetProgram = await getTarget(window.slProgram, 'Program Table', 'Program');
+      targetYear    = await getTarget(window.slYear,    'Dim_Master_Dealer', 'Year');
+      targetMonthQ  = await getTarget(window.slMonthQ,  'Dim_Master_Dealer', 'MonthQuarter');
+      console.log('Targets:', { targetProgram, targetYear, targetMonthQ });
 
-      // pre-fetch targets so first query is instant
-      targetProgram = await getTarget(slProgram, 'Program Table', 'Program');
-      targetYear    = await getTarget(slYear,    'Dim_Master_Dealer', 'Year');
-      targetMonthQ  = await getTarget(slMonthQ,  'Dim_Master_Dealer', 'MonthQuarter');
-
-      console.log('Targets detected:', { targetProgram, targetYear, targetMonthQ });
+      // wait 2s for report to fully settle, THEN hide
+      await delay(2000);
+      await setDisplay(window.slShow, false);
+      console.log('Initial hide done');
 
       setStatus('Ready — select DEP/REP + a Q-value to reveal Slicer_ShowQuarter', 'green');
 
@@ -367,8 +376,8 @@ async function init() {
     }
   });
 
-  report.on('dataSelected',   () => checkCondition());
-  report.on('filtersApplied', () => checkCondition());
+  window.pbiReport.on('dataSelected',   () => checkCondition());
+  window.pbiReport.on('filtersApplied', () => checkCondition());
 }
 
 init();
