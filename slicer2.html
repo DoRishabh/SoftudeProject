@@ -1,237 +1,367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <title>Dynamic Slicer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{
-      --bg:#0f1117;--panel:#13151c;--card:#1e2130;
-      --border:#2a2d3e;--cyan:#00d4ff;--lime:#76ff03;
-      --orange:#ff7043;--text:#e2e4f0;--dim:#6b6e8a;
-    }
-    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;}
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dynamic Slicer — RishabhPulse</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--panel:#13151c;--card:#1e2130;--card2:#252838;
+  --border:#2a2d3e;--border2:#353850;
+  --cyan:#00d4ff;--lime:#76ff03;--orange:#ff7043;--purple:#7c4dff;
+  --pink:#ff4081;--green:#00e676;
+  --text:#e2e4f0;--dim:#6b6e8a;--dimmer:#3a3d52;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
-    /* top nav */
-    nav{
-      background:var(--panel);border-bottom:1px solid var(--border);
-      padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-    }
-    .nav-left{display:flex;align-items:center;gap:16px;}
-    .nav-title{font-size:15px;font-weight:600;color:var(--cyan);}
-    .nav-btn{
-      padding:6px 16px;border-radius:6px;font-size:13px;font-weight:500;
-      text-decoration:none;border:1px solid var(--border);color:var(--dim);
-      transition:all .2s;
-    }
-    .nav-btn:hover{color:var(--text);border-color:var(--cyan);}
-    .nav-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(0,212,255,.08);}
+/* topnav */
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:46px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
+.logo-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;}
+.logo span{color:var(--cyan);}
+.nav-links{display:flex;gap:8px;}
+.nav-btn{font-family:'Space Mono',monospace;font-size:10px;padding:4px 12px;border-radius:4px;border:1px solid var(--border);color:var(--dim);text-decoration:none;transition:all .2s;}
+.nav-btn:hover{color:var(--text);border-color:var(--border2);}
+.nav-btn.active{color:var(--cyan);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.06);}
 
-    /* status bar */
-    #status-bar{
-      background:var(--card);border-bottom:1px solid var(--border);
-      padding:8px 24px;display:flex;align-items:center;gap:10px;font-size:13px;
-      color:var(--dim);flex-shrink:0;
-    }
-    .dot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex-shrink:0;}
-    .dot.green{background:var(--lime);}
-    .dot.amber{background:var(--orange);}
-    .dot.red{background:#ff4081;}
+/* status bar */
+.statusbar{display:flex;align-items:center;gap:10px;padding:0 20px;height:34px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;font-family:'Space Mono',monospace;font-size:10px;color:var(--dim);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--dimmer);flex-shrink:0;}
+.dot.green{background:var(--lime);box-shadow:0 0 6px var(--lime);}
+.dot.amber{background:var(--orange);}
+.dot.red{background:var(--pink);}
 
-    /* slicer badges */
-    #badges{
-      background:var(--panel);border-bottom:1px solid var(--border);
-      padding:8px 24px;display:flex;gap:8px;flex-shrink:0;
-    }
-    .badge{
-      padding:4px 14px;border-radius:20px;font-size:12px;font-weight:500;
-      border:1px solid var(--border);color:var(--dim);background:var(--card);
-    }
-    .badge.on{color:#0f1117;background:var(--lime);border-color:var(--lime);}
-    .badge.off{color:#ff4081;border-color:#ff4081;background:rgba(255,64,129,.1);}
+/* condition badges */
+.condbar{display:flex;align-items:center;gap:8px;padding:0 20px;height:36px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
+.cbadge{font-family:'Space Mono',monospace;font-size:9px;padding:3px 10px;border-radius:3px;border:1px solid var(--border);color:var(--dimmer);background:var(--card);}
+.cbadge.met{color:var(--lime);border-color:rgba(118,255,3,0.3);background:rgba(118,255,3,0.06);}
+.cbadge.unmet{color:var(--pink);border-color:rgba(255,64,129,0.3);background:rgba(255,64,129,0.06);}
+.cond-arrow{color:var(--dimmer);font-size:11px;}
 
-    /* report area */
-    #reportContainer{flex:1;min-height:0;}
+/* query box */
+.querybar{display:flex;align-items:center;gap:8px;padding:0 16px;height:44px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.query-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;outline:none;transition:border-color .2s;}
+.query-input:focus{border-color:var(--cyan);}
+.query-input::placeholder{color:var(--dimmer);}
+.run-btn{background:var(--cyan);color:#000;border:none;padding:7px 16px;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Space Mono',monospace;white-space:nowrap;transition:all .2s;}
+.run-btn:hover{box-shadow:0 0 14px rgba(0,212,255,0.35);}
+.hints{font-family:'Space Mono',monospace;font-size:9px;color:var(--dimmer);white-space:nowrap;}
 
-    /* loading overlay */
-    #loader{
-      position:absolute;inset:0;background:var(--bg);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-      font-size:14px;color:var(--dim);
-    }
-    .spinner{
-      width:36px;height:36px;border:3px solid var(--border);
-      border-top-color:var(--cyan);border-radius:50%;
-      animation:spin .8s linear infinite;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-  </style>
+/* report */
+#reportContainer{flex:1;min-height:0;background:#fff;}
+
+/* loader */
+#loader{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:13px;color:var(--dim);z-index:10;}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* query feedback toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;}
+#toast.show{opacity:1;}
+</style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-left">
-    <span class="nav-title">⚡ RishabhPulse</span>
-    <a href="/" class="nav-btn">Page 1 — AI Query</a>
-    <a href="/slicer2" class="nav-btn active">Page 2 — Dynamic Slicer</a>
+<div class="topnav">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div>Rishabh<span>Pulse</span></div>
   </div>
-</nav>
-
-<div id="status-bar">
-  <div class="dot" id="dot"></div>
-  <span id="status-text">Connecting...</span>
+  <div class="nav-links">
+    <a href="/" class="nav-btn">PAGE 1 — AI QUERY</a>
+    <a href="/slicer2" class="nav-btn active">PAGE 2 — DYNAMIC SLICER</a>
+  </div>
 </div>
 
-<div id="badges">
-  <span class="badge" id="b1">Slicer 1: —</span>
-  <span class="badge" id="b2">Slicer 2: —</span>
-  <span class="badge off" id="b3">Slicer 3: hidden</span>
+<div class="statusbar">
+  <div class="dot" id="dot"></div>
+  <span id="status-text">Connecting to Power BI...</span>
+</div>
+
+<!-- live condition indicator -->
+<div class="condbar">
+  <span class="cbadge" id="c-program">Program: none</span>
+  <span class="cond-arrow">+</span>
+  <span class="cbadge" id="c-quarter">Month-Quarter: no Q-value</span>
+  <span class="cond-arrow">→</span>
+  <span class="cbadge" id="c-result">Slicer_ShowQuarter: hidden</span>
+</div>
+
+<!-- query box -->
+<div class="querybar">
+  <input class="query-input" id="queryInput"
+    placeholder='e.g.  set program to DEP   |   set month-quarter to Q1-2021   |   set year to 2021'
+    onkeydown="if(event.key==='Enter') runQuery()"/>
+  <button class="run-btn" onclick="runQuery()">▶ APPLY</button>
+  <span class="hints">try: "set program to REP"</span>
 </div>
 
 <div style="position:relative;flex:1;min-height:0;">
-  <div id="loader">
-    <div class="spinner"></div>
-    <span>Loading report...</span>
-  </div>
+  <div id="loader"><div class="spinner"></div><span>Loading report...</span></div>
   <div id="reportContainer" style="height:100%;"></div>
 </div>
 
+<div id="toast"></div>
+
 <script>
-  const models = window['powerbi-client'].models;
-  let slicer1 = null, slicer2 = null, slicer3 = null;
+const models = window['powerbi-client'].models;
 
-  function setStatus(msg, color) {
-    document.getElementById('status-text').textContent = msg;
-    document.getElementById('dot').className = 'dot ' + (color || '');
-  }
+// ── slicer references ──────────────────────────────────────────
+let slProgram = null;   // "Program slicer"
+let slYear    = null;   // "Year slicer"
+let slMonthQ  = null;   // "Month-Quarter slicer"
+let slShow    = null;   // "Slicer_ShowQuarter"  ← the one we show/hide
 
-  function setBadge(id, label, state) {
-    // state: 'on' | 'off' | ''
-    const el = document.getElementById(id);
-    el.textContent = label;
-    el.className = 'badge ' + (state || '');
-  }
+// ── helpers ────────────────────────────────────────────────────
+function setStatus(msg, color) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('dot').className = 'dot ' + (color || '');
+}
 
-  async function init() {
-    setStatus('Fetching embed token...', '');
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
 
-    const res = await fetch('/pbi-embed-token-2');
-    const data = await res.json();
+// Quarter-Year pattern: Q1-2021, Q2-2024 etc.
+function isQuarterValue(str) {
+  return /^Q[1-4]-\d{4}$/.test(str.trim());
+}
 
-    if (data.error) {
-      setStatus('Token error: ' + data.error, 'red');
-      document.getElementById('loader').innerHTML =
-        `<span style="color:#ff4081">❌ ${data.error}</span>`;
-      return;
-    }
+// ── condition check ────────────────────────────────────────────
+async function checkCondition() {
+  if (!slProgram || !slMonthQ || !slShow) return;
 
-    const report = powerbi.embed(
-      document.getElementById('reportContainer'),
-      {
-        type: 'report',
-        id: data.report_id,
-        embedUrl: data.embed_url,
-        accessToken: data.token,
-        tokenType: models.TokenType.Embed,
-        settings: {
-          filterPaneEnabled: false,
-          navContentPaneEnabled: false
-        }
-      }
+  try {
+    const [stP, stM] = await Promise.all([
+      slProgram.getSlicerState(),
+      slMonthQ.getSlicerState()
+    ]);
+
+    // Condition 1: program is DEP or REP
+    const programVals = stP.filters.length > 0 && stP.filters[0].values
+      ? stP.filters[0].values.map(v => String(v).toUpperCase())
+      : [];
+    const programOk = programVals.some(v => v === 'DEP' || v === 'REP');
+
+    // Condition 2: at least one selected Month-Quarter value is Q-format
+    const mqVals = stM.filters.length > 0 && stM.filters[0].values
+      ? stM.filters[0].values.map(v => String(v))
+      : [];
+    const quarterOk = mqVals.some(v => isQuarterValue(v));
+
+    const show = programOk && quarterOk;
+
+    // SDK call — physically show or hide Slicer_ShowQuarter
+    await slShow.setVisualDisplayState(
+      show
+        ? models.VisualContainerDisplayMode.Visible
+        : models.VisualContainerDisplayMode.Hidden
     );
 
-    report.on('rendered', async () => {
-      document.getElementById('loader').style.display = 'none';
-      setStatus('Report loaded — finding slicers...', 'amber');
+    // Update condition bar
+    const cp = document.getElementById('c-program');
+    cp.textContent = programVals.length
+      ? `Program: ${programVals.join(', ')}`
+      : 'Program: none';
+    cp.className = 'cbadge ' + (programOk ? 'met' : 'unmet');
 
-      try {
-        const pages  = await report.getPages();
-        const page   = pages.find(p => p.isActive);
-        const visuals = await page.getVisuals();
+    const cm = document.getElementById('c-quarter');
+    cm.textContent = mqVals.length
+      ? `Month-Quarter: ${mqVals.join(', ')}`
+      : 'Month-Quarter: no Q-value';
+    cm.className = 'cbadge ' + (quarterOk ? 'met' : 'unmet');
 
-        // ── OPEN BROWSER CONSOLE (F12) TO SEE YOUR EXACT SLICER NAMES ──
-        console.log('=== ALL VISUALS ===');
-        visuals.forEach(v =>
-          console.log(`type: ${v.type} | title: "${v.title}" | name: "${v.name}"`)
-        );
+    const cr = document.getElementById('c-result');
+    cr.textContent = show ? 'Slicer_ShowQuarter: VISIBLE ✓' : 'Slicer_ShowQuarter: hidden';
+    cr.className = 'cbadge ' + (show ? 'met' : 'unmet');
 
-        const slicers = visuals.filter(v => v.type === 'slicer');
-        console.log('=== SLICER TITLES ===', slicers.map(s => s.title));
+    setStatus(
+      show
+        ? '✓ Condition met — Slicer_ShowQuarter is visible'
+        : `Condition not met — Program(DEP/REP): ${programOk?'✓':'✗'}  Quarter value: ${quarterOk?'✓':'✗'}`,
+      show ? 'green' : 'amber'
+    );
 
-        // ⚠️ CHANGE THESE to match what you see in console exactly
-        slicer1 = slicers.find(s => s.title === 'Program');
-        slicer2 = slicers.find(s => s.title === 'Year');
-        slicer3 = slicers.find(s => s.title === 'Month-Quarter');
-
-        if (!slicer1 || !slicer2 || !slicer3) {
-          const found = slicers.map(s => `"${s.title}"`).join(', ');
-          setStatus(`❌ Slicer not found. Found: ${found} — update titles in slicer2.html`, 'red');
-          return;
-        }
-
-        // Hide slicer 3 immediately on load
-        await slicer3.setVisualDisplayState(
-          models.VisualContainerDisplayMode.Hidden
-        );
-
-        setBadge('b1', 'Slicer 1: none', '');
-        setBadge('b2', 'Slicer 2: none', '');
-        setBadge('b3', 'Slicer 3: hidden', 'off');
-        setStatus('Ready — select Slicer 1 AND Slicer 2 to reveal Slicer 3', 'green');
-
-      } catch(err) {
-        setStatus('Error: ' + err.message, 'red');
-        console.error(err);
-      }
-    });
-
-    // Fires on every slicer click
-    report.on('dataSelected', () => checkAndToggle());
-    report.on('filtersApplied', () => checkAndToggle());
+  } catch(err) {
+    console.error('checkCondition error:', err);
   }
+}
 
-  async function checkAndToggle() {
-    if (!slicer1 || !slicer2 || !slicer3) return;
+// ── natural language query parser ──────────────────────────────
+async function runQuery() {
+  const raw = document.getElementById('queryInput').value.trim().toLowerCase();
+  if (!raw) return;
 
+  // "set program to DEP"  /  "set program slicer to dep"
+  const programMatch = raw.match(/set\s+program(?:\s+slicer)?\s+to\s+([a-z]+)/i);
+
+  // "set year to 2021"  /  "set year slicer to 2021"
+  const yearMatch = raw.match(/set\s+year(?:\s+slicer)?\s+to\s+(\d{4})/i);
+
+  // "set month-quarter to Q1-2021"  /  "set month quarter to q2-2022"
+  const mqMatch = raw.match(/set\s+month[- ]quarter(?:\s+slicer)?\s+to\s+([q][1-4][-]\d{4})/i);
+
+  let acted = false;
+
+  if (programMatch) {
+    const val = programMatch[1].toUpperCase(); // DEP, REP, SEP etc.
+    const filter = {
+      $schema: 'http://powerbi.com/product/schema#basic',
+      target: { table: 'Program Table', column: 'Program' },
+      operator: 'In',
+      values: [val],
+      filterType: models.FilterType ? models.FilterType.BasicFilter : 1
+    };
     try {
-      const [st1, st2] = await Promise.all([
-        slicer1.getSlicerState(),
-        slicer2.getSlicerState()
-      ]);
-
-      const s1on = st1.filters && st1.filters.length > 0;
-      const s2on = st2.filters && st2.filters.length > 0;
-      const show = s1on && s2on;
-
-      // THE ACTUAL SDK CALL — physically shows or hides slicer 3
-      await slicer3.setVisualDisplayState(
-        show
-          ? models.VisualContainerDisplayMode.Visible
-          : models.VisualContainerDisplayMode.Hidden
-      );
-
-      // Update badges
-      const v1 = s1on && st1.filters[0].values ? st1.filters[0].values.join(', ') : '—';
-      const v2 = s2on && st2.filters[0].values ? st2.filters[0].values.join(', ') : '—';
-      setBadge('b1', `Slicer 1: ${v1}`, s1on ? 'on' : '');
-      setBadge('b2', `Slicer 2: ${v2}`, s2on ? 'on' : '');
-      setBadge('b3', show ? 'Slicer 3: visible ✓' : 'Slicer 3: hidden', show ? 'on' : 'off');
-
-      setStatus(
-        show
-          ? '✓ Both selected — Slicer 3 is now visible on the report'
-          : `Select both slicers → Slicer1: ${s1on?'✓':'✗'}  Slicer2: ${s2on?'✓':'✗'}`,
-        show ? 'green' : 'amber'
-      );
-
-    } catch(err) {
-      console.error('toggle error:', err);
+      await slProgram.setSlicerState({ filters: [filter] });
+      toast(`✓ Program slicer → ${val}`);
+      acted = true;
+    } catch(e) {
+      // retry once — SDK sometimes needs a beat after load
+      try {
+        await slProgram.setSlicerState({ filters: [filter] });
+        toast(`✓ Program slicer → ${val}`);
+        acted = true;
+      } catch(e2) {
+        toast(`✗ Could not set program: ${e2.message}`);
+      }
     }
   }
 
-  init();
+  if (yearMatch) {
+    const val = parseInt(yearMatch[1]);
+    const filter = {
+      $schema: 'http://powerbi.com/product/schema#basic',
+      target: { table: 'DateTable', column: 'Year' },  // ⚠️ adjust table/column if needed
+      operator: 'In',
+      values: [val],
+      filterType: models.FilterType ? models.FilterType.BasicFilter : 1
+    };
+    try {
+      await slYear.setSlicerState({ filters: [filter] });
+      toast(`✓ Year slicer → ${val}`);
+      acted = true;
+    } catch(e) {
+      toast(`✗ Could not set year: ${e.message}`);
+    }
+  }
+
+  if (mqMatch) {
+    const val = mqMatch[1].toUpperCase(); // Q1-2021
+    const filter = {
+      $schema: 'http://powerbi.com/product/schema#basic',
+      target: { table: 'DateTable', column: 'MonthQuarter' }, // ⚠️ adjust table/column if needed
+      operator: 'In',
+      values: [val],
+      filterType: models.FilterType ? models.FilterType.BasicFilter : 1
+    };
+    try {
+      await slMonthQ.setSlicerState({ filters: [filter] });
+      toast(`✓ Month-Quarter slicer → ${val}`);
+      acted = true;
+    } catch(e) {
+      toast(`✗ Could not set month-quarter: ${e.message}`);
+    }
+  }
+
+  if (!acted) {
+    toast('✗ Could not parse. Try: "set program to DEP"');
+    return;
+  }
+
+  // After setting, re-check condition
+  setTimeout(() => checkCondition(), 400);
+  document.getElementById('queryInput').value = '';
+}
+
+// ── embed + init ───────────────────────────────────────────────
+async function init() {
+  setStatus('Fetching embed token...', '');
+
+  const res  = await fetch('/pbi-embed-token-2');
+  const data = await res.json();
+
+  if (data.error) {
+    setStatus('Token error: ' + data.error, 'red');
+    document.getElementById('loader').innerHTML =
+      `<span style="color:var(--pink)">❌ ${data.error}</span>`;
+    return;
+  }
+
+  const report = powerbi.embed(
+    document.getElementById('reportContainer'),
+    {
+      type: 'report',
+      id: data.report_id,
+      embedUrl: data.embed_url,
+      accessToken: data.token,
+      tokenType: models.TokenType.Embed,
+      settings: { filterPaneEnabled: false, navContentPaneEnabled: false }
+    }
+  );
+
+  report.on('rendered', async () => {
+    document.getElementById('loader').style.display = 'none';
+    setStatus('Finding slicers...', 'amber');
+
+    try {
+      const pages   = await report.getPages();
+      const page    = pages.find(p => p.isActive);
+      const visuals = await page.getVisuals();
+
+      // Log to console so you can verify names
+      console.log('=== ALL VISUALS ===');
+      visuals.forEach(v =>
+        console.log(`type:${v.type} | title:"${v.title}" | name:"${v.name}"`)
+      );
+
+      const slicers = visuals.filter(v => v.type === 'slicer');
+      console.log('=== SLICER TITLES ===', slicers.map(s => s.title));
+
+      // Match by title — these match exactly what's in your screenshot
+      slProgram = slicers.find(s => s.title === 'Program slicer');
+      slYear    = slicers.find(s => s.title === 'Year slicer');
+      slMonthQ  = slicers.find(s => s.title === 'Month-Quarter slicer');
+      slShow    = slicers.find(s => s.title === 'Slicer_ShowQuarter');
+
+      const missing = [
+        !slProgram && 'Program slicer',
+        !slYear    && 'Year slicer',
+        !slMonthQ  && 'Month-Quarter slicer',
+        !slShow    && 'Slicer_ShowQuarter'
+      ].filter(Boolean);
+
+      if (missing.length) {
+        const found = slicers.map(s => `"${s.title}"`).join(', ');
+        setStatus(`❌ Not found: ${missing.join(', ')} — Found: ${found}`, 'red');
+        return;
+      }
+
+      // Hide Slicer_ShowQuarter on load
+      await slShow.setVisualDisplayState(
+        models.VisualContainerDisplayMode.Hidden
+      );
+
+      setStatus('Ready — select DEP/REP + a Q-value to reveal Slicer_ShowQuarter', 'green');
+
+    } catch(err) {
+      setStatus('Error: ' + err.message, 'red');
+      console.error(err);
+    }
+  });
+
+  // Fire on every slicer interaction
+  report.on('dataSelected',   () => checkCondition());
+  report.on('filtersApplied', () => checkCondition());
+}
+
+init();
 </script>
 </body>
 </html>
