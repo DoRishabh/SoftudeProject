@@ -92,20 +92,24 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 
 <script>
 const models = window['powerbi-client'].models;
+const VISIBLE = 0;
+const HIDDEN  = 1;
 
-// ── exposed globally so console tests work ─────────────────────
-window.slProgram = null;
-window.slYear    = null;
-window.slMonthQ  = null;
-window.slShow    = null;
+// slicer visual references
+let slProgram = null;
+let slYear    = null;
+let slMonthQ  = null;
+let slShow    = null;
 
+// table/column targets
 let targetProgram = null;
 let targetYear    = null;
 let targetMonthQ  = null;
 
-// confirmed: Visible=0, Hidden=1
-const VISIBLE = models.VisualContainerDisplayMode.Visible; // 0
-const HIDDEN  = models.VisualContainerDisplayMode.Hidden;  // 1
+// only init once
+let reportReady = false;
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function setStatus(msg, color) {
   document.getElementById('status-text').textContent = msg;
@@ -124,36 +128,42 @@ function isQuarterValue(str) {
   return /^Q[1-4]-\d{4}$/i.test(str.trim());
 }
 
-function delay(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-// ── show/hide with retry ───────────────────────────────────────
 async function setDisplay(visual, show) {
-  const mode = show ? VISIBLE : HIDDEN;
   try {
-    await visual.setVisualDisplayState(mode);
-    console.log(`setVisualDisplayState(${show ? 'VISIBLE=0' : 'HIDDEN=1'}) → success`);
+    await visual.setVisualDisplayState(show ? VISIBLE : HIDDEN);
+    console.log(`display → ${show ? 'VISIBLE(0)' : 'HIDDEN(1)'} ✓`);
   } catch(e) {
-    console.warn(`setVisualDisplayState failed, retrying in 500ms...`, e);
-    await delay(500);
+    console.warn('setVisualDisplayState failed, retrying...', e.message);
+    await delay(600);
     try {
-      await visual.setVisualDisplayState(mode);
-      console.log(`setVisualDisplayState retry → success`);
+      await visual.setVisualDisplayState(show ? VISIBLE : HIDDEN);
+      console.log(`display retry → ${show ? 'VISIBLE' : 'HIDDEN'} ✓`);
     } catch(e2) {
-      console.error(`setVisualDisplayState retry failed`, e2);
+      console.error('setVisualDisplayState retry failed:', e2.message);
     }
   }
 }
 
-// ── condition check ────────────────────────────────────────────
+async function getTarget(slicer, fallbackTable, fallbackCol) {
+  try {
+    const st = await slicer.getSlicerState();
+    console.log(`target [${fallbackCol}]:`, JSON.stringify(st));
+    if (st.filters && st.filters.length > 0 && st.filters[0].target) {
+      return st.filters[0].target;
+    }
+  } catch(e) {
+    console.warn('getSlicerState failed for', fallbackCol);
+  }
+  return { table: fallbackTable, column: fallbackCol };
+}
+
 async function checkCondition() {
-  if (!window.slProgram || !window.slMonthQ || !window.slShow) return;
+  if (!slProgram || !slMonthQ || !slShow) return;
 
   try {
     const [stP, stM] = await Promise.all([
-      window.slProgram.getSlicerState(),
-      window.slMonthQ.getSlicerState()
+      slProgram.getSlicerState(),
+      slMonthQ.getSlicerState()
     ]);
 
     const programVals = stP.filters.length > 0 && stP.filters[0].values
@@ -167,14 +177,11 @@ async function checkCondition() {
     const quarterOk = mqVals.some(v => isQuarterValue(v));
 
     const show = programOk && quarterOk;
+    console.log(`condition → program:${programOk} quarter:${quarterOk} show:${show}`);
 
-    console.log(`checkCondition → programOk:${programOk} quarterOk:${quarterOk} show:${show}`);
-
-    // wait for PBI to finish processing before touching display state
     await delay(300);
-    await setDisplay(window.slShow, show);
+    await setDisplay(slShow, show);
 
-    // update badges
     const cp = document.getElementById('c-program');
     cp.textContent = programVals.length ? `Program: ${programVals.join(', ')}` : 'Program: none';
     cp.className = 'cbadge ' + (programOk ? 'met' : 'unmet');
@@ -190,7 +197,7 @@ async function checkCondition() {
     setStatus(
       show
         ? '✓ Condition met — Slicer_ShowQuarter is visible'
-        : `Waiting — Program(DEP/REP): ${programOk?'✓':'✗'}   Q-value selected: ${quarterOk?'✓':'✗'}`,
+        : `Waiting — Program(DEP/REP): ${programOk?'✓':'✗'}   Q-value: ${quarterOk?'✓':'✗'}`,
       show ? 'green' : 'amber'
     );
 
@@ -199,21 +206,6 @@ async function checkCondition() {
   }
 }
 
-// ── auto-detect table/column from slicer state ─────────────────
-async function getTarget(slicer, fallbackTable, fallbackCol) {
-  try {
-    const st = await slicer.getSlicerState();
-    console.log(`getSlicerState [${fallbackCol}]:`, JSON.stringify(st));
-    if (st.filters && st.filters.length > 0 && st.filters[0].target) {
-      return st.filters[0].target;
-    }
-  } catch(e) {
-    console.warn('getSlicerState failed, using fallback for', fallbackCol);
-  }
-  return { table: fallbackTable, column: fallbackCol };
-}
-
-// ── query parser ───────────────────────────────────────────────
 async function runQuery() {
   const raw = document.getElementById('queryInput').value.trim();
   if (!raw) return;
@@ -225,62 +217,56 @@ async function runQuery() {
 
   let acted = false;
 
-  if (programMatch && window.slProgram) {
+  if (programMatch && slProgram) {
     const val = programMatch[1].toUpperCase();
-    if (!targetProgram) targetProgram = await getTarget(window.slProgram, 'Program Table', 'Program');
-    const filter = {
-      $schema: 'http://powerbi.com/product/schema#basic',
-      target: targetProgram,
-      operator: 'In',
-      values: [val],
-      filterType: 1
-    };
+    if (!targetProgram) targetProgram = await getTarget(slProgram, 'Program Table', 'Program');
     try {
-      await window.slProgram.setSlicerState({ filters: [filter] });
+      await slProgram.setSlicerState({ filters: [{
+        $schema: 'http://powerbi.com/product/schema#basic',
+        target: targetProgram,
+        operator: 'In',
+        values: [val],
+        filterType: 1
+      }]});
       toast(`✓ Program → ${val}`);
       acted = true;
     } catch(e) {
-      console.error('program set failed:', e);
       toast(`✗ Program failed: ${e.message}`, true);
     }
   }
 
-  if (yearMatch && window.slYear) {
+  if (yearMatch && slYear) {
     const val = parseInt(yearMatch[1]);
-    if (!targetYear) targetYear = await getTarget(window.slYear, 'Dim_Master_Dealer', 'Year');
-    const filter = {
-      $schema: 'http://powerbi.com/product/schema#basic',
-      target: targetYear,
-      operator: 'In',
-      values: [val],
-      filterType: 1
-    };
+    if (!targetYear) targetYear = await getTarget(slYear, 'Dim_Master_Dealer', 'Year');
     try {
-      await window.slYear.setSlicerState({ filters: [filter] });
+      await slYear.setSlicerState({ filters: [{
+        $schema: 'http://powerbi.com/product/schema#basic',
+        target: targetYear,
+        operator: 'In',
+        values: [val],
+        filterType: 1
+      }]});
       toast(`✓ Year → ${val}`);
       acted = true;
     } catch(e) {
-      console.error('year set failed:', e);
       toast(`✗ Year failed: ${e.message}`, true);
     }
   }
 
-  if (mqMatch && window.slMonthQ) {
+  if (mqMatch && slMonthQ) {
     const val = mqMatch[1].toUpperCase();
-    if (!targetMonthQ) targetMonthQ = await getTarget(window.slMonthQ, 'Dim_Master_Dealer', 'MonthQuarter');
-    const filter = {
-      $schema: 'http://powerbi.com/product/schema#basic',
-      target: targetMonthQ,
-      operator: 'In',
-      values: [val],
-      filterType: 1
-    };
+    if (!targetMonthQ) targetMonthQ = await getTarget(slMonthQ, 'Dim_Master_Dealer', 'MonthQuarter');
     try {
-      await window.slMonthQ.setSlicerState({ filters: [filter] });
+      await slMonthQ.setSlicerState({ filters: [{
+        $schema: 'http://powerbi.com/product/schema#basic',
+        target: targetMonthQ,
+        operator: 'In',
+        values: [val],
+        filterType: 1
+      }]});
       toast(`✓ Month-Quarter → ${val}`);
       acted = true;
     } catch(e) {
-      console.error('mq set failed:', e);
       toast(`✗ Month-Quarter failed: ${e.message}`, true);
     }
   }
@@ -295,7 +281,6 @@ async function runQuery() {
   document.getElementById('queryInput').value = '';
 }
 
-// ── init ───────────────────────────────────────────────────────
 async function init() {
   setStatus('Fetching embed token...', '');
 
@@ -309,8 +294,8 @@ async function init() {
     return;
   }
 
-  // expose report globally for console debugging
-  window.pbiReport = powerbi.embed(
+  // embed the report
+  powerbi.embed(
     document.getElementById('reportContainer'),
     {
       type: 'report',
@@ -322,51 +307,64 @@ async function init() {
     }
   );
 
-  window.pbiReport.on('rendered', async () => {
+  // ── use embeds[0] — the only reliable way to get the report object ──
+  // poll until the embed is ready
+  const getReport = () => new Promise((resolve) => {
+    const check = setInterval(() => {
+      const embeds = window.powerbi.embeds;
+      if (embeds && embeds.length > 0) {
+        clearInterval(check);
+        resolve(embeds[0]);
+      }
+    }, 100);
+  });
+
+  const report = await getReport();
+
+  report.on('rendered', async () => {
+    if (reportReady) return;
+    reportReady = true;
+
     document.getElementById('loader').style.display = 'none';
     setStatus('Finding slicers...', 'amber');
 
     try {
-      const pages   = await window.pbiReport.getPages();
+      const pages   = await report.getPages();
       const page    = pages.find(p => p.isActive);
       const visuals = await page.getVisuals();
 
-      console.log('=== ALL VISUALS ===');
-      visuals.forEach(v =>
-        console.log(`type:${v.type} | title:"${v.title}" | name:"${v.name}"`)
-      );
+      console.log('=== VISUALS ===');
+      visuals.forEach(v => console.log(v.type, '|', `"${v.title}"`));
 
       const slicers = visuals.filter(v => v.type === 'slicer');
-      console.log('=== SLICER TITLES ===', slicers.map(s => s.title));
 
-      window.slProgram = slicers.find(s => s.title === 'Program slicer');
-      window.slYear    = slicers.find(s => s.title === 'Year slicer');
-      window.slMonthQ  = slicers.find(s => s.title === 'Month-Quarter slicer');
-      window.slShow    = slicers.find(s => s.title === 'Slicer_ShowQuarter');
+      slProgram = slicers.find(s => s.title === 'Program slicer');
+      slYear    = slicers.find(s => s.title === 'Year slicer');
+      slMonthQ  = slicers.find(s => s.title === 'Month-Quarter slicer');
+      slShow    = slicers.find(s => s.title === 'Slicer_ShowQuarter');
 
       const missing = [
-        !window.slProgram && 'Program slicer',
-        !window.slYear    && 'Year slicer',
-        !window.slMonthQ  && 'Month-Quarter slicer',
-        !window.slShow    && 'Slicer_ShowQuarter'
+        !slProgram && 'Program slicer',
+        !slYear    && 'Year slicer',
+        !slMonthQ  && 'Month-Quarter slicer',
+        !slShow    && 'Slicer_ShowQuarter'
       ].filter(Boolean);
 
       if (missing.length) {
-        const found = slicers.map(s => `"${s.title}"`).join(', ');
-        setStatus(`❌ Not found: ${missing.join(', ')} — Found: ${found}`, 'red');
+        setStatus(`❌ Not found: ${missing.join(', ')}`, 'red');
         return;
       }
 
       // pre-fetch targets
-      targetProgram = await getTarget(window.slProgram, 'Program Table', 'Program');
-      targetYear    = await getTarget(window.slYear,    'Dim_Master_Dealer', 'Year');
-      targetMonthQ  = await getTarget(window.slMonthQ,  'Dim_Master_Dealer', 'MonthQuarter');
+      targetProgram = await getTarget(slProgram, 'Program Table', 'Program');
+      targetYear    = await getTarget(slYear,    'Dim_Master_Dealer', 'Year');
+      targetMonthQ  = await getTarget(slMonthQ,  'Dim_Master_Dealer', 'MonthQuarter');
       console.log('Targets:', { targetProgram, targetYear, targetMonthQ });
 
-      // wait 2s for report to fully settle, THEN hide
+      // wait for report to fully settle then hide
       await delay(2000);
-      await setDisplay(window.slShow, false);
-      console.log('Initial hide done');
+      await setDisplay(slShow, false);
+      console.log('Initial hide done ✓');
 
       setStatus('Ready — select DEP/REP + a Q-value to reveal Slicer_ShowQuarter', 'green');
 
@@ -376,8 +374,8 @@ async function init() {
     }
   });
 
-  window.pbiReport.on('dataSelected',   () => checkCondition());
-  window.pbiReport.on('filtersApplied', () => checkCondition());
+  report.on('dataSelected',   () => checkCondition());
+  report.on('filtersApplied', () => checkCondition());
 }
 
 init();
