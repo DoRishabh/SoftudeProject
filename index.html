@@ -166,6 +166,19 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 const API       = 'https://softudeproject.onrender.com/query';
 const EMBED_URL = 'https://softudeproject.onrender.com/pbi-embed-token';
 const CACHE     = {};
+
+function fuzzyKey(q){
+  return q.toLowerCase()
+    .trim()
+    .replace(/\s+/g,' ')
+    .replace(/charts?/g,'chart')
+    .replace(/graphs?/g,'chart')
+    .replace(/plots?/g,'chart')
+    .replace(/[^a-z0-9 ]/g,'')
+    .split(' ')
+    .sort()
+    .join(' ');
+}
 const PAL       = ['#00d4ff','#ff7043','#76ff03','#7c4dff','#ff4081','#ffd740','#00e676','#00b4a0','#ff6d00','#b388ff','#69f0ae','#40c4ff','#ff6e40','#ea80fc','#ccff90'];
 const GC        = 'rgba(42,45,62,0.8)';
 const TC        = '#4a4d6a';
