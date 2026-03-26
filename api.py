@@ -31,7 +31,6 @@ REPORT_ID_5 = "20c745e8-2d1f-455d-b05f-a25f1471a59c"  # page 5 - Year End Medals
 
 
 def generate_embed_token(report_id: str, access_level: str = "View"):
-    """Try group workspace first, fall back to My Workspace."""
     access_token = get_pbi_token()
     if not access_token:
         return {"error": "No access token"}
@@ -79,20 +78,14 @@ def serve_slicer2():
 def serve_usmap():
     return FileResponse("usmap.html")
 
-@app.get("/Interactive Sales")
-def serve_medals():
-    return FileResponse("medals.html")
-    
+@app.get("/interactivesales")          # ✅ fixed — no space, correct file
+def serve_interactivesales():
+    return FileResponse("interactivesales.html")
+
 @app.get("/yearendmedals")
 def serve_yearendmedals():
     return FileResponse("yearendmedals.html")
 
-@app.get("/pbi-embed-token-5")
-def pbi_embed_token_5():
-    try:
-        return generate_embed_token(REPORT_ID_5)
-    except Exception as e:
-        return {"error": str(e)}
 
 # ── token routes ───────────────────────────────────────────────
 @app.get("/pbi-token")
@@ -108,7 +101,6 @@ def pbi_token():
 
 @app.get("/pbi-embed-token")
 def pbi_embed_token():
-    # page 1 uses Edit access for push functionality
     try:
         access_token = get_pbi_token()
         if not access_token:
@@ -149,6 +141,14 @@ def pbi_embed_token_3():
 def pbi_embed_token_4():
     try:
         return generate_embed_token(REPORT_ID_4)
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/pbi-embed-token-5")
+def pbi_embed_token_5():
+    try:
+        return generate_embed_token(REPORT_ID_5)
     except Exception as e:
         return {"error": str(e)}
 
