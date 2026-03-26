@@ -26,7 +26,8 @@ GROUP_ID    = "f19c474c-d2d1-4f91-853d-a5839a682e30"
 REPORT_ID   = "771ac7b8-a37d-4028-825d-8b9f189ed0c4"  # page 1 - AI Query
 REPORT_ID_2 = "4f1df241-4d62-4774-bb25-8af18d1e553f"  # page 2 - Dynamic Slicer
 REPORT_ID_3 = "1123e3e7-5f3a-4499-b1ca-0c37f673f29a"  # page 3 - US Map
-REPORT_ID_4 = "f109fb78-c9fd-472d-8747-040f4ffc0daa"  # page 4 - Medals
+REPORT_ID_4 = "f109fb78-c9fd-472d-8747-040f4ffc0daa"  # page 4 - Interactive Sales
+REPORT_ID_5 = "20c745e8-2d1f-455d-b05f-a25f1471a59c"  # page 5 - Year End Medals
 
 
 def generate_embed_token(report_id: str, access_level: str = "View"):
