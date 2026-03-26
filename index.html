@@ -21,15 +21,13 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;}
 .logo-icon{width:26px;height:26px;background:linear-gradient(135deg,var(--cyan),var(--purple));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;}
 .logo span{color:var(--cyan);}
-.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-right{display:flex;align-items:center;gap:8px;}
 .live-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'Space Mono',monospace;color:var(--dim);}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .pbi-push-badge{font-family:'Space Mono',monospace;font-size:9px;padding:3px 10px;border-radius:3px;background:rgba(118,255,3,0.1);border:1px solid rgba(118,255,3,0.2);color:var(--lime);display:none;}
 .pbi-push-badge.show{display:inline-block;}
-
-/* ✅ NEW — page 2 nav button */
-.page2-btn{
+.nav-btn{
   font-family:'Space Mono',monospace;font-size:10px;
   padding:4px 12px;border-radius:4px;
   border:1px solid rgba(0,212,255,0.3);
@@ -37,8 +35,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
   text-decoration:none;white-space:nowrap;
   transition:all 0.2s;
 }
-.page2-btn:hover{background:rgba(0,212,255,0.14);border-color:var(--cyan);}
-
+.nav-btn:hover{background:rgba(0,212,255,0.14);border-color:var(--cyan);}
 .main-body{flex:1;display:flex;overflow:hidden;}
 .pbi-panel{flex:1;display:flex;flex-direction:column;border-right:2px solid var(--border2);}
 .pbi-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -100,8 +97,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;heigh
   <div class="nav-right">
     <span class="pbi-push-badge" id="push-badge">✓ PUSHED TO POWER BI</span>
     <div class="live-badge"><div class="live-dot"></div>SNOWFLAKE LIVE</div>
-    <!-- ✅ NEW — link to page 2 -->
-    <a href="/slicer2" class="page2-btn">DYNAMIC SLICER →</a>
+    <a href="/slicer2" class="nav-btn">DYNAMIC SLICER →</a>
+    <a href="/usmap"   class="nav-btn">US MAP →</a>
+    <a href="/medals"  class="nav-btn">MEDALS →</a>
   </div>
 </div>
 
