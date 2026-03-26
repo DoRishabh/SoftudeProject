@@ -79,10 +79,20 @@ def serve_slicer2():
 def serve_usmap():
     return FileResponse("usmap.html")
 
-@app.get("/medals")
+@app.get("/Interactive Sales")
 def serve_medals():
     return FileResponse("medals.html")
+    
+@app.get("/yearendmedals")
+def serve_yearendmedals():
+    return FileResponse("yearendmedals.html")
 
+@app.get("/pbi-embed-token-5")
+def pbi_embed_token_5():
+    try:
+        return generate_embed_token(REPORT_ID_5)
+    except Exception as e:
+        return {"error": str(e)}
 
 # ── token routes ───────────────────────────────────────────────
 @app.get("/pbi-token")
