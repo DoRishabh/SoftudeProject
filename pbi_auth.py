@@ -21,10 +21,25 @@ def get_pbi_token():
         "scope":         "https://analysis.windows.net/powerbi/api/.default"
     }
     response = requests.post(url, data=data)
-    print(f"Token response: {response.status_code}")
-    token = response.json().get("access_token")
-    print(f"Token fetch: {'OK' if token else 'FAILED - ' + str(response.json())}")
+
+print("STATUS:", response.status_code)
+print("RAW RESPONSE:", response.text)
+
+try:
+    j = response.json()
+    token = j.get("access_token")
+
+    if token:
+        print("TOKEN FETCH: OK")
+    else:
+        print("TOKEN FETCH FAILED:", j)
+
     return token
+
+except Exception as e:
+    print("JSON ERROR:", str(e))
+    print("RAW RESPONSE:", response.text)
+    return None
 
 def clear_pbi_rows():
     token = get_pbi_token()
