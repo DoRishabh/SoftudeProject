@@ -64,4 +64,3 @@ def push_pbi_rows(rows: list):
     body       = {"rows": rows}
     resp       = requests.post(url, headers=headers, json=body, timeout=10)
     print(f"PBI push: {resp.status_code} {resp.text[:200]}")
-
