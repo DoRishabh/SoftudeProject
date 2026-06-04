@@ -23,7 +23,7 @@ app.add_middleware(
 )
 
 GROUP_ID    = "me"
-REPORT_ID   = "2d08c5c9-b9d0-4ee0-94de-b09a9e199b68"  # page 1 - AI Query
+REPORT_ID   = "3c26f1ff-f038-4841-b0ef-cdc33b772805"  # page 1 - AI Query
 REPORT_ID_2 = "4f1df241-4d62-4774-bb25-8af18d1e553f"  # page 2 - Dynamic Slicer
 _3 = "1123e3e7-5f3a-4499-b1ca-0c37f673f29a"  # page 3 - US Map
 _4 = "f109fb78-c9fd-472d-8747-040f4ffc0daa"  # page 4 - Interactive Sales
