@@ -2,6 +2,7 @@ import os
 import time
 import requests
 from dotenv import load_dotenv
+
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
 
 def get_pbi_token():
@@ -11,56 +12,80 @@ def get_pbi_token():
     username      = os.getenv("PBI_USERNAME")
     password      = os.getenv("PBI_PASSWORD")
 
-    url  = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+
     data = {
-        "grant_type":    "password",
-        "client_id":     client_id,
+        "grant_type": "password",
+        "client_id": client_id,
         "client_secret": client_secret,
-        "username":      username,
-        "password":      password,
-        "scope":         "https://analysis.windows.net/powerbi/api/.default"
+        "username": username,
+        "password": password,
+        "scope": "https://analysis.windows.net/powerbi/api/.default"
     }
+
     response = requests.post(url, data=data)
 
-print("STATUS:", response.status_code)
-print("RAW RESPONSE:", response.text)
-
-try:
-    j = response.json()
-    token = j.get("access_token")
-
-    if token:
-        print("TOKEN FETCH: OK")
-    else:
-        print("TOKEN FETCH FAILED:", j)
-
-    return token
-
-except Exception as e:
-    print("JSON ERROR:", str(e))
+    print("STATUS:", response.status_code)
     print("RAW RESPONSE:", response.text)
-    return None
+
+    try:
+        j = response.json()
+        token = j.get("access_token")
+
+        if token:
+            print("TOKEN FETCH: OK")
+        else:
+            print("TOKEN FETCH FAILED:", j)
+
+        return token
+
+    except Exception as e:
+        print("JSON ERROR:", str(e))
+        print("RAW RESPONSE:", response.text)
+        return None
+
 
 def clear_pbi_rows():
     token = get_pbi_token()
+
     if not token:
         print("Skipping clear — no token")
         return
+
     dataset_id = os.getenv("PBI_DATASET_ID")
-    url        = f"https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/tables/RealTimeData/rows"
-    headers    = {"Authorization": f"Bearer {token}"}
-    resp       = requests.delete(url, headers=headers, timeout=10)
+    url = f"https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/tables/RealTimeData/rows"
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = requests.delete(url, headers=headers, timeout=10)
+
     print(f"PBI clear: {resp.status_code} {resp.text[:200]}")
+
     time.sleep(3)
+
 
 def push_pbi_rows(rows: list):
     token = get_pbi_token()
+
     if not token:
         print("Skipping push — no token")
         return
+
     dataset_id = os.getenv("PBI_DATASET_ID")
-    url        = f"https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/tables/RealTimeData/rows"
-    headers    = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    body       = {"rows": rows}
-    resp       = requests.post(url, headers=headers, json=body, timeout=10)
+
+    url = f"https://api.powerbi.com/v1.0/myorg/datasets/{dataset_id}/tables/RealTimeData/rows"
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    body = {"rows": rows}
+
+    resp = requests.post(
+        url,
+        headers=headers,
+        json=body,
+        timeout=10
+    )
+
     print(f"PBI push: {resp.status_code} {resp.text[:200]}")
