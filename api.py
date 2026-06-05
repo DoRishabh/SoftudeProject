@@ -25,9 +25,9 @@ app.add_middleware(
 GROUP_ID = "72f110e5-6326-453f-9bdc-296521c12db6"
 REPORT_ID = "095cedfd-6e66-41cb-9a34-6b4c27b82f33"  # page 1 - AI Query
 REPORT_ID_2 = "dbd58b31-a727-4ecd-95d1-b59635514f84"  # page 2 - Dynamic Slicer
-_3 = "8ec6d3af-2b2c-49f0-aac9-0cf60d25a3c1"  # page 3 - US Map
-_4 = "0e832b56-e799-4c6a-a7ec-5062185a1037"  # page 4 - Interactive Sales
-_5 = "d21da0af-dd6e-4c5b-bec3-4eecacff91a2"  # page 5 - Year End Medals
+REPORT_ID_3 = "8ec6d3af-2b2c-49f0-aac9-0cf60d25a3c1"  # page 3 - US Map
+REPORT_ID_4 = "0e832b56-e799-4c6a-a7ec-5062185a1037"  # page 4 - Interactive Sales
+REPORT_ID_5 = "d21da0af-dd6e-4c5b-bec3-4eecacff91a2"  # page 5 - Year End Medals
 
 
 def generate_embed_token(report_id: str, access_level: str = "View"):
