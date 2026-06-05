@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROUP_ID    = ""
+GROUP_ID    = "me"
 REPORT_ID   = "3c26f1ff-f038-4841-b0ef-cdc33b772805"  # page 1 - AI Query
 REPORT_ID_2 = "4f1df241-4d62-4774-bb25-8af18d1e553f"  # page 2 - Dynamic Slicer
 _3 = "1123e3e7-5f3a-4499-b1ca-0c37f673f29a"  # page 3 - US Map
@@ -104,22 +104,21 @@ def test_pbi():
         token = get_pbi_token()
 
         headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
+            "Authorization": f"Bearer {token}"
         }
 
-        url = f"https://api.powerbi.com/v1.0/myorg/reports/{REPORT_ID}"
-
-        resp = requests.get(url, headers=headers)
+        me = requests.get(
+            "https://api.powerbi.com/v1.0/myorg/groups",
+            headers=headers
+        )
 
         return {
-            "status": resp.status_code,
-            "response": resp.text
+            "status": me.status_code,
+            "response": me.text[:5000]
         }
 
     except Exception as e:
         return {"error": str(e)}
-
 
 @app.get("/pbi-embed-token")
 def pbi_embed_token():
