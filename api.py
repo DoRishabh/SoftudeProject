@@ -99,27 +99,15 @@ def pbi_token():
         return {"error": str(e)}
 
 @app.get("/test-pbi")
+
 def test_pbi():
-    try:
-        token = get_pbi_token()
+    token = get_pbi_token()
 
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-
-        me = requests.get(
-            "https://api.powerbi.com/v1.0/myorg/groups",
-            headers=headers
-        )
-
-        return {
-            "status": me.status_code,
-            "response": me.text[:5000]
-        }
-
-    except Exception as e:
-        return {"error": str(e)}
-
+    return {
+        "token_exists": token is not None,
+        "token_start": token[:50] if token else None
+    }
+    
 @app.get("/pbi-embed-token")
 def pbi_embed_token():
     try:
