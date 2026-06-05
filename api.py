@@ -22,7 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROUP_ID    = "me"
+GROUP_ID    = ""
 REPORT_ID   = "3c26f1ff-f038-4841-b0ef-cdc33b772805"  # page 1 - AI Query
 REPORT_ID_2 = "4f1df241-4d62-4774-bb25-8af18d1e553f"  # page 2 - Dynamic Slicer
 _3 = "1123e3e7-5f3a-4499-b1ca-0c37f673f29a"  # page 3 - US Map
@@ -114,7 +114,7 @@ def pbi_embed_token():
         access_token = get_pbi_token()
         if not access_token:
             return {"error": "No access token"}
-        url = f"https://api.powerbi.com/v1.0/myorg/groups/{GROUP_ID}/reports/{REPORT_ID}/GenerateToken"
+        url = f"https://api.powerbi.com/v1.0/myorg/reports/{REPORT_ID}/GenerateToken"
         headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         resp = requests.post(url, headers=headers, json={"accessLevel": "Edit"})
         data = resp.json()
@@ -122,10 +122,10 @@ def pbi_embed_token():
         if not token:
             return {"error": str(data)}
         return {
-            "token": token,
-            "report_id": REPORT_ID,
-            "embed_url": f"https://app.powerbi.com/reportEmbed?reportId={REPORT_ID}&groupId={GROUP_ID}"
-        }
+    "token": token,
+    "report_id": REPORT_ID,
+    "embed_url": f"https://app.powerbi.com/reportEmbed?reportId={REPORT_ID}"
+}
     except Exception as e:
         return {"error": str(e)}
 
