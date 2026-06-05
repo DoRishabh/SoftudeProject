@@ -98,6 +98,28 @@ def pbi_token():
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/test-pbi")
+def test_pbi():
+    try:
+        token = get_pbi_token()
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        url = f"https://api.powerbi.com/v1.0/myorg/reports/{REPORT_ID}"
+
+        resp = requests.get(url, headers=headers)
+
+        return {
+            "status": resp.status_code,
+            "response": resp.text
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @app.get("/pbi-embed-token")
 def pbi_embed_token():
