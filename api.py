@@ -1,4 +1,4 @@
-import os
++++++import os
 import requests
 from dotenv import load_dotenv
 
@@ -22,8 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROUP_ID = "72f110e5-6326-453f-9bdc-296521c12db6"
-REPORT_ID = "095cedfd-6e66-41cb-9a34-6b4c27b82f33"  # page 1 - AI Query
+GROUP_ID    = ""
+REPORT_ID   = "3c26f1ff-f038-4841-b0ef-cdc33b772805"  # page 1 - AI Query
 REPORT_ID_2 = "4f1df241-4d62-4774-bb25-8af18d1e553f"  # page 2 - Dynamic Slicer
 _3 = "1123e3e7-5f3a-4499-b1ca-0c37f673f29a"  # page 3 - US Map
 _4 = "f109fb78-c9fd-472d-8747-040f4ffc0daa"  # page 4 - Interactive Sales
@@ -40,25 +40,8 @@ def generate_embed_token(report_id: str, access_level: str = "View"):
 
     # try group workspace first
     url = f"https://api.powerbi.com/v1.0/myorg/groups/{GROUP_ID}/reports/{report_id}/GenerateToken"
-    resp = requests.post(url, headers=headers, json={"accessLevel": "Edit"})
-
-print("STATUS:", resp.status_code)
-print("TEXT:", resp.text)
-
-if not resp.text.strip():
-    return {
-        "error": "Power BI returned empty response",
-        "status": resp.status_code
-    }
-
-try:
+    resp = requests.post(url, headers=headers, json=body)
     data = resp.json()
-except Exception:
-    return {
-        "error": "Power BI returned non-JSON response",
-        "status": resp.status_code,
-        "response": resp.text[:1000]
-    }
     token = data.get("token")
     if token:
         return {
