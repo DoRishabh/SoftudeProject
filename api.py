@@ -40,8 +40,25 @@ def generate_embed_token(report_id: str, access_level: str = "View"):
 
     # try group workspace first
     url = f"https://api.powerbi.com/v1.0/myorg/groups/{GROUP_ID}/reports/{report_id}/GenerateToken"
-    resp = requests.post(url, headers=headers, json=body)
+    resp = requests.post(url, headers=headers, json={"accessLevel": "Edit"})
+
+print("STATUS:", resp.status_code)
+print("TEXT:", resp.text)
+
+if not resp.text.strip():
+    return {
+        "error": "Power BI returned empty response",
+        "status": resp.status_code
+    }
+
+try:
     data = resp.json()
+except Exception:
+    return {
+        "error": "Power BI returned non-JSON response",
+        "status": resp.status_code,
+        "response": resp.text[:1000]
+    }
     token = data.get("token")
     if token:
         return {
